@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>スプラトゥーン3 戦績管理アプリ(仮)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="ITS,Splatoon3,スプラトゥーン3,戦績管理">
+    <meta name="description" content="スプラトゥーン3の戦績管理アプリ">
+    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+    <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<!-- toggle section -->
+<input type="checkbox" id="check">
+<label for="check">
+    <i class="fa-solid fa-bars" id="hambargerBtn"></i>
+    <i class="fas fa-times" id="cancel"></i>
+</label>
+
+<!-- sidebar section -->
+<div class="sidebar">
+    <header><a href="{{url_for('Home')}}">Home</a></header>
+    <dl><dt>対戦結果</dt>
+        <ul>
+            <li><a href="{{url_for('show_json')}}">最近のバトル</a></li>
+            <li><a href="#">ナワバリバトル</a></li>
+            <li><a href="#">バンカラマッチ</a></li>
+            <li><a href="#">Xマッチ</a></li>
+            <li><a href="#">サーモンラン</a></li>
+        </ul>
+    </dl>
+    <dl><dt>Schedule</dt>
+        <ul>
+            <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
+            <li><a href="#">バンカラマッチ</a></li>
+            <li><a href="#">サーモンラン</a></li>
+        </ul>
+    </dl>
+    <dl><dt>戦績分析ツール</dt>
+        <ul>
+            <li><a href="#">勝率</a></li>
+            <li><a href="{{url_for('name_search')}}">名前検索</a></li>
+            <li><a href="{{url_for('compatibility')}}">ユーザー相性</a></li>
+            <li><a href="#">チーム別勝率</a></li>
+            <li><a href="#">時間帯別勝率</a></li>
+        </ul>
+    </dl>
+</div>
+<!-- /sidebar section -->
+<script>
+    var data={};
+    var win=0;
+    var lose=0;
+    function judge_count(key,judge){
+        //var k=hash[key];
+        if(key in data){
+            data[key][judge]++;
+        }else{
+            data[key]={'WIN':0,'LOSE':0};
+            data[key][judge]++;
+        }
+    }
+    function count(judge){
+        if(judge=="WIN"){
+            win++;
+        }else{
+            lose++;
+        }
+        //console.log(judge);
+    }
+    function print_result(id){
+        for(i in data){
+            //console.log(data[i]);
+        }
+        var array = Object.keys(data).map((k)=>({ key: k, value: data[k]['WIN']+data[k]['LOSE'],WINRATE: data[k]['WIN']/(data[k]['WIN']+data[k]['LOSE'])}));//value味方回数
+        array.sort((a, b) => b.value - a.value);
+        for(let step = 0; step < 10; step++){
+            console.log(array[step].key,array[step].value);
+        }
+
+        array.sort((a, b) => b.WINRATE - a.WINRATE);
+        var c=0;
+        for(let step = 0;; step++){
+            if(c==10)break;
+            if(array[step].value>=5){
+                console.log(array[step].key,array[step].WINRATE);
+                c++;
+            }
+        }
+
+        //console.log(data);
+        //var elm=document.getElementById(id);
+        //elm.innerHTML=("<p>勝率:"+Math.round(1000*win/(win+lose))/10+"% 勝利数:"+win+"回 敗北数:"+lose+"回</p>");
+    }
+</script>
+<div id="main">
+    
+    {% for result in df %}
+        {% for i in result['data']['vsHistoryDetail']['myTeam']['players'] %}
+        <script>
+            //count({{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}});
+            judge_count({{i['name']|tojson}},{{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}});
+        </script>
+        {% endfor %}
+    {% endfor %}
+    <!--<p id="compatibility"></p>-->
+    <script>
+        print_result("compatibility")
+    </script>
+
+<!--footer
+<footer>
+<small>Copyright&copy;2022 Team ITS All Rights Reserved.</small>
+</footer>
+-->
+
+
+
+
+</div>
+<!--/container-->
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+        <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
+        <title>ITS_Json_Information</title>
+        <script>
+            hash = {}; 
+            hashs = {};
+            win = {};
+            lose = {};
+            weapon = {};
+        </script>
+    </head>
+    <body>
+
+        <!-- toggle section -->
+        <input type="checkbox" id="check">
+        <label for="check">
+            <i class="fa-solid fa-bars" id="hambargerBtn"></i>
+            <i class="fas fa-times" id="cancel"></i>
+        </label>
+
+        <!-- sidebar section -->
+        <div class="sidebar">
+            <header><a href="{{url_for('Home')}}">Home</a></header>
+            <dl><dt>Schedule</dt>
+                <ul>
+                    <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
+                    <li><a href="#">バンカラマッチ</a></li>
+                    <li><a href="#">サーモンラン</a></li>
+                </ul>
+            </dl>
+            <dl><dt>戦績分析ツール</dt>
+                <ul>
+                    <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
+                    <li><a href="{{url_for('show_winrate')}}">勝率</a></li>
+                    <li><a href="{{url_for('name_search')}}">名前検索</a></li>
+                    <li><a href="#">チーム別勝率</a></li>
+                    <li><a href="#">時間帯別勝率</a></li>
+                </ul>
+            </dl>
+        </div>
+        
+        
+
+        <div id="show_json">
+            <p>Name Search</p>
+            <p>名前を入力してください</p>
+            <form action="{{url_for('name_search')}}" method="POST">
+                
+                <input type="text" name="username" value="{{ username }}" padding="20px">
+                <button type="submit">検索</button>
+                <button type="reset">リセット</button>
+            </form>
+            
+
+            <div id="result"></div>
+            <script>
+               
+                index = {};
+            </script>
+            
+
+            {% for result in df %}
+                <script>var result_show = false;</script>
+                {% for i in result['data']['vsHistoryDetail']['myTeam']['players'] %}
+                <script>
+                    var name_search = {{username|tojson}};
+                    var name = {{i['name']|tojson}};
+                    var regex = new RegExp("^" + name_search + ".*");
+                    
+                    var result = name.match(regex);
+                    var id = {{i['id']|tojson}};
+                    
+                    
+                    //var elm = document.getElementById("player");
+                    
+                    if(result != null){
+                        result_show = true;
+                        var time = {{result['data']['vsHistoryDetail']['playedTime']|tojson}};
+                        
+                        var judge = {{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}};
+                        var weapon_name = {{i['weapon']['name']|tojson}};
+                        
+
+                        
+                        
+                        if(hash[name]==null){
+                            hash[name]=1;
+                            weapon[name]={'playerweapon':{}};
+                            if(weapon[name]['playerweapon'][weapon_name]==null){
+                                weapon[name]['playerweapon'][weapon_name]=1;
+                            }
+                            
+                        }else{
+                            
+                            hash[name]++;
+                            if(weapon[name]['playerweapon'][weapon_name]==null){
+                                weapon[name]['playerweapon'][weapon_name]=1;
+                            }else{
+                                weapon[name]['playerweapon'][weapon_name]++;
+                            }
+                            
+                            
+                        }
+
+                        if(judge == "WIN"){
+                            
+                            if(win[name]==null){
+                                win[name]=1;
+                            }else{
+                                win[name]++;
+                            }
+                            
+                        }
+                        else if(judge == "LOSE"){
+                            
+                            if(lose[name]==null){
+                                lose[name]=1;
+                            }else{
+                                lose[name]++;
+                            }
+                        }
+
+                        
+                        var num = hash[name];
+                        index[name]=1;
+                        var win_cnt = win[name];
+                        var lose_cnt = lose[name];
+                        
+                       
+
+
+                    }
+                </script>
+                {% endfor %}
+                
+                <script>
+                    if(result_show){
+                        if("WIN"=={{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}}){
+                            document.write("<p id=\"win\">Judgement:"+{{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}}+ "</p>");
+                        }else{
+                            document.write("<p id=\"lose\">Judgement:"+{{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}}+ "</p>");
+                        }
+                    document.write("<div class=\"myteam\">");
+                    document.write("<h3>{{result['data']['vsHistoryDetail']['playedTime']}}</h3>");
+                    document.write("<h3>Team Member</h3>")
+                    }
+                
+                </script>
+                {% for i in result['data']['vsHistoryDetail']['myTeam']['players'] %}
+                        <script>
+                            
+
+                            if(result_show){
+                                
+                                document.write("<h4>{{i['byname']}}</h4>");
+                                var red_flag = false; 
+                                var blue_flag = false;
+                                if("kaososo" == {{i['name']|tojson}}){
+                                        blue_flag = true;
+                                        
+                                    }
+                                for(var key in index){
+                                    if(key == {{i['name']|tojson}}){
+                                        red_flag= true;
+                                        break;
+                                    }
+                                    
+                                }
+                                if(red_flag){
+                                    document.write("<p><span style=\"color:red; font-size:20px;\">{{i['name']}} <img src=\"{{i['weapon']['image']['url']}}\" class=\"weapon\"></span>{{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>"); 
+                                }else if(blue_flag){
+                                    document.write("<p><span style=\"color:blue; font-size:25px;\">{{i['name']}} <img src=\"{{i['weapon']['image']['url']}}\" class=\"weapon\"></span>{{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>");
+                                }else{
+                                    document.write("<p><span>{{i['name']}} <img src=\"{{i['weapon']['image']['url']}}\" class=\"weapon\"></span>{{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>");
+                                }
+
+                            }
+                        </script>
+                    
+                {% endfor %}
+                <script>
+                    if(result_show){
+                        document.write("</div>");
+                        document.write("<div id=\"rule\">");
+                        document.write("<h3>Mode:{{result['data']['vsHistoryDetail']['vsMode']['mode']}} Rule:{{result['data']['vsHistoryDetail']['vsRule']['name']}} Stage:{{result['data']['vsHistoryDetail']['vsStage']['name']}}</h3>");
+                        
+                    
+                        document.write("<h3><img src=\"{{result['data']['vsHistoryDetail']['vsStage']['image']['url']}}\"></h3>");
+                        document.write("</div>");
+                        var elm = document.getElementById("result_data");
+                        
+                    }
+                
+                </script>
+            {% endfor %}
+           
+           
+            <script>
+                var elm2 = document.getElementById("result");
+                elm2.innerHTML += "<p>検索してヒットしたプレイヤーとのデータ</p>";
+                for(var key in index){
+                    if(index[key]==1){
+                        elm2.innerHTML +="<p>" + "プレイヤー名\:" + key  + "</p>";
+                        elm2.innerHTML +="<p>" + "味方回数\:" + hash[key] + "</p>";
+                        elm2.innerHTML +="<p>" + "勝利数\:" + win[key] + "</p>";
+                        elm2.innerHTML +="<p>" + "敗北数\:" + lose[key] + "</p>";
+                        elm2.innerHTML +="<p>" + "勝率\:" + (win[key]/hash[key]).toPrecision(4) + "</p>";
+                        for(var weapon_key in weapon[key]['playerweapon']){
+                            elm2.innerHTML +="<p>" + "使用武器\:" + weapon_key + "　使用回数\:" + weapon[key]['playerweapon'][weapon_key] + "</p>";//weapon[key][weapon_key] + "</p>";
+                        }
+                        elm2.innerHTML += "<hr>";
+                    }
+                }
+            </script>
+            
+        </div>
+    </body>
+</html>
+

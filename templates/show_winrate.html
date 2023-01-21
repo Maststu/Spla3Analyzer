@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ITS_勝率</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+    <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<!-- toggle section -->
+<input type="checkbox" id="check">
+<label for="check">
+    <i class="fa-solid fa-bars" id="hambargerBtn"></i>
+    <i class="fas fa-times" id="cancel"></i>
+</label>
+
+<!-- sidebar section -->
+<div class="sidebar">
+    <header><a href="{{url_for('Home')}}">Home</a></header>
+    <dl><dt>Schedule</dt>
+        <ul>
+            <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
+            <li><a href="#">バンカラマッチ</a></li>
+            <li><a href="#">サーモンラン</a></li>
+        </ul>
+    </dl>
+    <dl><dt>戦績分析ツール</dt>
+        <ul>
+            <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
+            <li><a href="{{url_for('show_winrate')}}">勝率</a></li>
+            <li><a href="{{url_for('name_search')}}">名前検索</a></li>
+            <li><a href="#">チーム別勝率</a></li>
+            <li><a href="#">時間帯別勝率</a></li>
+        </ul>
+    </dl>
+</div>
+<!-- /sidebar section -->
+<!--モード入力-->
+<form action="{{url_for('show_winrate')}}" method="POST">
+    <div class="select">
+    <select name="weapon-genre" id="weapon-genre">
+        <option hidden>武器種を選んでください</option>
+        <option value="all">ALL</option>
+        <option value="shot">シューター</option>
+        <option value="dualies">マニューバー</option>
+        <option value="charger">チャージャー</option>
+        <option value="blaster">ブラスター</option>
+        <option value="roller">ローラー</option>
+        <option value="brush">筆</option>
+        <option value="slosher">スロッシャー</option>
+        <option value="splatling">スピナー</option>
+        <option value="brella">傘</option>
+        <option value="splatana">ワイパー</option>
+        <option value="stringer">弓</option>
+    </select>
+    <select name="weapon" id="weapon" value="{{weapon}}">
+        <option hidden value="ALL">武器を選んでください</option>
+        <option value="ALL">ALL</option>
+    </select>
+        <input type="submit" value="戦績表示">
+    </div>
+</form>
+
+<script>
+    //武器リスト
+    const shot_list=['わかばシューター','ヒーローシューターレプリカ','スプラシューター','プロモデラーMG','N-ZAP85','もみじシューター',
+            'スペースシューター','ボールドマーカー','プライムシューター','スプラシューターコラボ','52ガロン','L3リールガン',
+            'ジェットスイーパー','シャープマーカー','96ガロン','プロモデラーRG','ボトルガイザー','プライムシューターコラボ','H3リールガン',];
+
+    const dualies_list=['スプラマニューバー','デュアルスイーパー','スパッタリー','クアッドホッパーブラック','ケルビン525','スパッタリー・ヒュー'];
+
+    const charger_list=['スプラチャージャー','スクイックリンα','スプラスコープ','R-PEN/5H','リッター4K','14式竹筒銃・甲','ソイチューバー','4Kスコープ'];
+
+    const blaster_list=['ホットブラスター','ラピッドブラスター','ロングブラスター','ノヴァブラスター','クラッシュブラスター','ノヴァブラスターネオ','Rブラスターエリート'];
+
+    const roller_list=['スプラローラー','カーボンローラー','ダイナモローラー','ワイドローラー','ヴァリアブルローラー','カーボンローラーデコ'];
+
+    const brush_list=['ホクサイ','パブロ','パブロヒュー'];
+
+    const slosher_list=['バケットスロッシャー','ヒッセン','バケットスロッシャーデコ','スクリュースロッシャー','オーバーフロッシャー','エクスプロッシャー'];
+
+    const splatling_list=['バレルスピナー','スプラスピナー','ハイドラント','スプラスピナーコラボ','ノーチラス47','クーゲルシュライバー'];
+
+    const brella_list=['パラシェルター','キャンピングシェルター','スパイガジェット'];
+                    
+    const splatana_list=['ドライブワイパー','ジムワイパー'];
+
+    const stringer_list=['トライストリンガー','LACT450'];
+
+    const weapon_list={
+        "all":["ALL"],
+        "shot":shot_list,
+        "dualies":dualies_list,
+        "charger":charger_list,
+        "blaster":blaster_list,
+        "roller":roller_list,
+        "brush":brush_list,
+        "slosher":slosher_list,
+        "splatling":splatling_list,
+        "brella":brella_list,
+        "splatana":splatana_list,
+        "stringer":stringer_list,
+    };
+    /***
+    ["ALL",shot_list,dualies_list,charger_list,blaster_list,roller_list,
+        brush_list,slosher_list,splatling_list,brella_list,splatana_list,stringer_list];
+    ***/
+        //その他リスト
+    const stage_list=['ALL','ユノハナ大渓谷','ゴンズイ地区','ヤガラ市場','マテガイ放水路',
+                    'ナメロウ金属','マサバ海峡大橋','キンメダイ美術館','マヒマヒリゾート＆スパ',
+                    '海女美術大学','チョウザメ造船','ザトウマーケット','スメーシーワールド',
+                    'クサヤ温泉','ヒラメが丘団地'];
+    const mode_list=['ALL','REGULAR','BANKARA','PRIVATE','X_MATCH','FEST'];
+    const rule_list=['ALL','ナワバリバトル','ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'];
+    
+    //動的セレクトボックス作成
+    function setMenuOptions(selectedgenre){
+        const selectWeaponName=document.getElementById('weapon');
+        //menuList.disabled=false;//選択可能にする
+        //要素を削除
+        while(selectWeaponName.firstChild){
+                selectWeaponName.removeChild(selectWeaponName.firstChild);
+            }
+        weapon_list[selectedgenre].forEach((menu,index)=>{
+            //要素を追加
+            const option=document.createElement('option');
+            option.value=menu;
+            option.innerHTML=menu;
+            selectWeaponName.appendChild(option);
+        });
+    };
+
+    //ジャンルを選ぶためのセレクトボックスを指定
+    const genreSelect=document.getElementById('weapon-genre');
+
+    //なんらかのジャンルが選択されたら（change）、処理を行う -- [3]
+    genreSelect.addEventListener('change', (e) => {
+    setMenuOptions(e.target.value);  //選択された料理ジャンルを引数として関数に渡す
+    //※e.target.valueはgenreSelectで選択された値
+    })
+
+
+</script>
+
+<!--/mode-->
+
+    <script>
+        /***
+        var win_count=[0,0,0,0];
+        var lose_count=[0,0,0,0];
+
+        var kill_count_win=[0,0,0,0];
+        var kill_count_lose=[0,0,0,0];
+        var assist_count_win=[0,0,0,0];
+        var assist_count_lose=[0,0,0,0];
+        var death_count_win=[0,0,0,0];
+        var death_count_lose=[0,0,0,0];
+
+        var kill_average_all=[0,0,0,0];
+        var kill_average_win=[0,0,0,0];
+        var kill_average_lose=[0,0,0,0];
+        var assist_average_all=[0,0,0,0];
+        var assist_average_win=[0,0,0,0];
+        var assist_average_lose=[0,0,0,0];
+        var death_average_all=[0,0,0,0];
+        var death_average_win=[0,0,0,0];
+        var death_average_lose=[0,0,0,0];
+
+
+        function calc_rate_kad(){
+            for(var i=0;i<1;i++){
+                kill_average_all[i]=(kill_count_win[i]+kill_count_lose[i])/(win_count[i]+lose_count[i]);
+                kill_average_win[i]=kill_count_win[i]/win_count[i];
+                kill_average_lose[i]=kill_count_lose[i]/lose_count[i];
+
+                assist_average_all[i]=(assist_count_win[i]+assist_count_lose[i])/(win_count[i]+lose_count[i]);
+                assist_average_win[i]=assist_count_win[i]/win_count[i];
+                assist_average_lose[i]=assist_count_lose[i]/lose_count[i];
+
+                death_average_all[i]=(death_count_win[i]+death_count_lose[i])/(win_count[i]+lose_count[i]);
+                death_average_win[i]=death_count_win[i]/win_count[i];
+                death_average_lose[i]=death_count_lose[i]/lose_count[i];
+            }
+        }
+        ***/
+        var win_count={
+            "regular":[0],
+            "bankara":[0,0,0,0],
+            "private":[0,0,0,0,0],
+            "x-match":[0,0,0,0],
+            "fest":[0]
+        };
+
+        var lose_count={
+            "regular":[0],
+            "bankara":[0,0,0,0],
+            "private":[0,0,0,0,0],
+            "x-match":[0,0,0,0],
+            "fest":[0]
+        };
+
+        function count_win(mode,rule){
+            win_count[mode][rule]+=1;
+        }
+
+        function count_lose(mode,rule){
+            lose_count[mode][rule]+=1;
+        }
+
+        function calc_winrate(mode,rule){
+            return win_count["mode"][rule]/(win_count["mode"][rule]+lose_count["mode"][rule]);
+        }
+
+        function print_result(id,mode,rule){
+            var elm=document.getElementById(id);
+            var winrate='None';
+            if ((win_count[mode][rule]+lose_count[mode][rule])!=0){
+                winrate=win_count[mode][rule]/(win_count[mode][rule]+lose_count[mode][rule])
+            }
+            elm.innerHTML=("<p>勝率:"+Math.round(winrate*1000)/10+"% 勝利数:"+win_count[mode][rule]+" 敗北数: "+lose_count[mode][rule]+"</p>");  
+        }
+
+        //絞り込みweapon,stage
+
+    </script>
+
+    {% for result in df %}
+        {% for i in result['myTeam']['players'] %}
+            {% if i['isMyself']==true %}
+                {% if weapon=='ALL' %}
+                    {% if 'REGULAR'==result['vsMode']['mode'] %}
+                        {% if "WIN"==result['myTeam']['judgement'] %}
+                            <script>count_win('regular',0)</script>
+                        {% endif %}
+                        {% if "LOSE"==result['myTeam']['judgement'] %}
+                            <script>count_lose('regular',0)</script>
+                        {% endif %}
+                    {% endif %}
+                    {% if 'BANKARA'==result['vsMode']['mode'] %}
+                        {% if "ガチエリア"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('bankara',0)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('bankara',0)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチヤグラ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('bankara',1)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('bankara',1)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチホコバトル"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('bankara',2)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('bankara',2)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチアサリ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('bankara',3)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('bankara',3)</script>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if 'PRIVATE'==result['vsMode']['mode'] %}
+                        {% if "ナワバリバトル"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',0)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',0)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチエリア"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',1)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',1)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチヤグラ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',2)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',2)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチホコバトル"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',3)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',3)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチアサリ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',4)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',4)</script>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if 'X-MATCH'==result['vsMode']['mode'] %}
+                        {% if "ガチエリア"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('x-match',0)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('x-match',0)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチヤグラ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('x-match',1)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('x-match',1)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチホコバトル"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('x-match',2)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('x-match',2)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチアサリ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('x-match',3)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('x-match',3)</script>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if 'FEST'==result['vsMode']['mode'] %}
+                        {% if "WIN"==result['myTeam']['judgement'] %}
+                        <script>count_win('fest',0)</script>
+                        {% endif %}
+                        {% if "LOSE"==result['myTeam']['judgement'] %}
+                            <script>count_lose('fest',0)</script>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                {% if i['weapon']['name']==weapon %}
+                    {% if 'REGULAR'==result['vsMode']['mode'] %}
+                        {% if "WIN"==result['myTeam']['judgement'] %}
+                            <script>count_win('regular',0)</script>
+                        {% endif %}
+                        {% if "LOSE"==result['myTeam']['judgement'] %}
+                            <script>count_lose('regular',0)</script>
+                        {% endif %}
+                    {% endif %}
+                    {% if 'BANKARA'==result['vsMode']['mode'] %}
+                        {% if "ガチエリア"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('bankara',0)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('bankara',0)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチヤグラ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('bankara',1)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('bankara',1)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチホコバトル"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('bankara',2)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('bankara',2)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチアサリ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('bankara',3)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('bankara',3)</script>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if 'PRIVATE'==result['vsMode']['mode'] %}
+                        {% if "ナワバリバトル"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',0)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',0)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチエリア"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',1)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',1)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチヤグラ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',2)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',2)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチホコバトル"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',3)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',3)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチアサリ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('private',4)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('private',4)</script>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if 'X-MATCH'==result['vsMode']['mode'] %}
+                        {% if "ガチエリア"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('x-match',0)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('x-match',0)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチヤグラ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('x-match',1)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('x-match',1)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチホコバトル"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('x-match',2)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('x-match',2)</script>
+                            {% endif %}
+                        {% endif %}
+                        {% if "ガチアサリ"==result['vsRule']['name'] %}
+                            {% if "WIN"==result['myTeam']['judgement'] %}
+                                <script>count_win('x-match',3)</script>
+                            {% endif %}
+                            {% if "LOSE"==result['myTeam']['judgement'] %}
+                                <script>count_lose('x-match',3)</script>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if 'FEST'==result['vsMode']['mode'] %}
+                        {% if "WIN"==result['myTeam']['judgement'] %}
+                        <script>count_win('fest',0)</script>
+                        {% endif %}
+                        {% if "LOSE"==result['myTeam']['judgement'] %}
+                            <script>count_lose('fest',0)</script>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    <div id="winrate">
+    <h2>使用ブキ:{{weapon}}</h2>
+    <h3><img src="{{url_for('static',filename='regular.jpg')}}" width="28" height="28"> レギュラーマッチ</h3>
+        <h4><img src="{{url_for('static',filename='regular.jpg')}}" width="24" height="24"> ナワバリバトル</h4>
+        <p id="winrate_regular">a</p>
+        <script>print_result("winrate_regular",'regular',0)</script>
+    <h3><img src="{{url_for('static',filename='bankara.jpg')}}" width="28" height="28"> バンカラマッチ</h3>
+        <h4><img src="{{url_for('static',filename='area.jpg')}}" width="24" height="24"> ガチエリア</h4>
+        <p id="winrate_bankara0">a</p>
+        <script>print_result("winrate_bankara0",'bankara',0)</script>
+        <h4><img src="{{url_for('static',filename='yagura.jpg')}}" width="24" height="24"> ガチヤグラ</h4>
+        <p id="winrate_bankara1">a</p>
+        <script>print_result("winrate_bankara1",'bankara',1)</script>
+        <h4><img src="{{url_for('static',filename='hoko.jpg')}}" width="24" height="24"> ガチホコバトル</h4>
+        <p id="winrate_bankara2">a</p>
+        <script>print_result("winrate_bankara2",'bankara',2)</script>
+        <h4><img src="{{url_for('static',filename='asari.jpg')}}" width="24" height="24"> ガチアサリ</h4>
+        <p id="winrate_bankara3">a</p>
+        <script>print_result("winrate_bankara3",'bankara',3)</script>
+    <h3><img src="{{url_for('static',filename='private.jpg')}}" width="28" height="28"> プライベートマッチ</h3>
+        <h4><img src="{{url_for('static',filename='regular.jpg')}}" width="24" height="24"> ナワバリバトル</h4>
+        <p id="winrate_private0">a</p>
+        <script>print_result("winrate_private0",'private',0)</script>
+        <h4><img src="{{url_for('static',filename='area.jpg')}}" width="24" height="24"> ガチエリア</h4>
+        <p id="winrate_private1">a</p>
+        <script>print_result("winrate_private1",'private',1)</script>
+        
+        <h4><img src="{{url_for('static',filename='yagura.jpg')}}" width="24" height="24"> ガチヤグラ</h4>
+        <p id="winrate_private2">a</p>
+        <script>print_result("winrate_private2",'private',2)</script>
+        
+        <h4><img src="{{url_for('static',filename='hoko.jpg')}}" width="24" height="24"> ガチホコバトル</h4>
+        <p id="winrate_private3">a</p>
+        <script>print_result("winrate_private3",'private',3)</script>
+        
+        <h4><img src="{{url_for('static',filename='asari.jpg')}}" width="24" height="24"> ガチアサリ</h4>
+        <p id="winrate_private4">a</p>
+        <script>print_result("winrate_private4",'private',4)</script>
+        
+    <h3><img src="{{url_for('static',filename='xmatch.jpg')}}" width="28" height="28"> Xマッチ</h3>
+        <h4><img src="{{url_for('static',filename='area.jpg')}}" width="24" height="24"> ガチエリア</h4>
+        <p id="winrate_x-match0">a</p>
+        <script>print_result("winrate_x-match0",'x-match',0)</script>
+        
+        <h4><img src="{{url_for('static',filename='yagura.jpg')}}" width="24" height="24"> ガチヤグラ</h4>
+        <p id="winrate_x-match1">a</p>
+        <script>print_result("winrate_x-match1",'x-match',1)</script>
+        
+        <h4><img src="{{url_for('static',filename='hoko.jpg')}}" width="24" height="24"> ガチホコバトル</h4>
+        <p id="winrate_x-match2">a</p>
+        <script>print_result("winrate_x-match2",'x-match',2)</script>
+        
+        <h4><img src="{{url_for('static',filename='asari.jpg')}}" width="24" height="24"> ガチアサリ</h4>
+        <p id="winrate_x-match3">a</p>
+        <script>print_result("winrate_x-match3",'x-match',3)</script>
+        
+    <h3><img src="{{url_for('static',filename='festmatch.jpg')}}" width="28" height="28"> フェスマッチ</h3>
+        <h4><img src="{{url_for('static',filename='regular.jpg')}}" width="24" height="24"> ナワバリバトル</h4>
+        <p id="winrate_fest">a</p>
+        <script>print_result("winrate_fest",'fest',0)</script>
+        
+    </div>
+
+
+
+</body>
+
+</html>

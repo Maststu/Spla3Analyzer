@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ITS_勝率</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+    <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<!-- toggle section -->
+<input type="checkbox" id="check">
+<label for="check">
+    <i class="fa-solid fa-bars" id="hambargerBtn"></i>
+    <i class="fas fa-times" id="cancel"></i>
+</label>
+
+<!-- sidebar section -->
+<div class="sidebar">
+    <header><a href="{{url_for('Home')}}">Home</a></header>
+    <dl><dt>Schedule</dt>
+        <ul>
+            <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
+            <li><a href="#">バンカラマッチ</a></li>
+            <li><a href="#">サーモンラン</a></li>
+        </ul>
+    </dl>
+    <dl><dt>戦績分析ツール</dt>
+        <ul>
+            <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
+            <li><a href="{{url_for('show_winrate')}}">勝率</a></li>
+            <li><a href="{{url_for('name_search')}}">名前検索</a></li>
+            <li><a href="#">チーム別勝率</a></li>
+            <li><a href="#">時間帯別勝率</a></li>
+        </ul>
+    </dl>
+</div>
+<!-- /sidebar section -->
+<!--モード入力-->
+<form action="{{url_for('show_winrate')}}" method="POST">
+    <select name="weapon-genre" id="weapon-genre">
+        <option disabled selected>武器種を選んでください</option>
+        <option value="all">ALL</option>
+        <option value="shot">シューター</option>
+        <option value="dualies">マニューバー</option>
+        <option value="charger">チャージャー</option>
+        <option value="blaster">ブラスター</option>
+        <option value="roller">ローラー</option>
+        <option value="brush">筆</option>
+        <option value="slosher">スロッシャー</option>
+        <option value="splatling">スピナー</option>
+        <option value="brella">傘</option>
+        <option value="splatana">ワイパー</option>
+        <option value="stringer">弓</option>
+    </select>
+    <select name="weapon" id="weapon" value="{{weapon}}">
+        <option disabled selected value="ALL">武器を選んでください</option>
+        <option value="ALL">ALL</option>
+    </select>
+    <select name="mode" id="mode" value="{{mode}}">
+        <option value="ALL">ALL</option>
+        <option value="REGULAR">レギュラーマッチ</option>
+        <option value="BANKARA">バンカラマッチ</option>
+        <option value="PRIVATE">プライベートマッチ</option>
+        <option value="X_MATCH">Xマッチ</option>
+        <option value="FEST">フェスマッチ</option>
+    </select>
+    <input type="submit" value="戦績表示">
+</form>
+
+<script>
+    //武器リスト
+    const shot_list=['わかばシューター','ヒーローシューターレプリカ','スプラシューター','プロモデラーMG','N-ZAP85','もみじシューター',
+            'スペースシューター','ボールドマーカー','プライムシューター','スプラシューターコラボ','52ガロン','L3リールガン',
+            'ジェットスイーパー','シャープマーカー','96ガロン','プロモデラーRG','ボトルガイザー','プライムシューターコラボ','H3リールガン',];
+
+    const dualies_list=['スプラマニューバー','デュアルスイーパー','スパッタリー','クアッドホッパーブラック','ケルビン525','スパッタリー・ヒュー'];
+
+    const charger_list=['スプラチャージャー','スクイックリンα','スプラスコープ','R-PEN/5H','リッター4K','14式竹筒銃・甲','ソイチューバー','4Kスコープ'];
+
+    const blaster_list=['ホットブラスター','ラピッドブラスター','ロングブラスター','ノヴァブラスター','クラッシュブラスター','ノヴァブラスターネオ','Rブラスターエリート'];
+
+    const roller_list=['スプラローラー','カーボンローラー','ダイナモローラー','ワイドローラー','ヴァリアブルローラー','カーボンローラーデコ'];
+
+    const brush_list=['ホクサイ','パブロ','パブロヒュー'];
+
+    const slosher_list=['バケットスロッシャー','ヒッセン','バケットスロッシャーデコ','スクリュースロッシャー','オーバーフロッシャー','エクスプロッシャー'];
+
+    const splatling_list=['バレルスピナー','スプラスピナー','ハイドラント','スプラスピナーコラボ','ノーチラス47','クーゲルシュライバー'];
+
+    const brella_list=['パラシェルター','キャンピングシェルター','スパイガジェット'];
+                    
+    const splatana_list=['ドライブワイパー','ジムワイパー'];
+
+    const stringer_list=['トライストリンガー','LACT450'];
+
+    const weapon_list={
+        "all":["ALL"],
+        "shot":shot_list,
+        "dualies":dualies_list,
+        "charger":charger_list,
+        "blaster":blaster_list,
+        "roller":roller_list,
+        "brush":brush_list,
+        "slosher":slosher_list,
+        "splatling":splatling_list,
+        "brella":brella_list,
+        "splatana":splatana_list,
+        "stringer":stringer_list,
+    };
+    /***
+    ["ALL",shot_list,dualies_list,charger_list,blaster_list,roller_list,
+        brush_list,slosher_list,splatling_list,brella_list,splatana_list,stringer_list];
+    ***/
+        //その他リスト
+    const stage_list=['ALL','ユノハナ大渓谷','ゴンズイ地区','ヤガラ市場','マテガイ放水路',
+                    'ナメロウ金属','マサバ海峡大橋','キンメダイ美術館','マヒマヒリゾート＆スパ',
+                    '海女美術大学','チョウザメ造船','ザトウマーケット','スメーシーワールド',
+                    'クサヤ温泉','ヒラメが丘団地'];
+    const mode_list={
+        'ALL':["ALL"],
+        'REGULAR':['ナワバリバトル'],
+        'BANKARA':['ALL','ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'],
+        'PRIVATE':['ALL','ナワバリバトル','ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'],
+        'X_MATCH':['ALL','ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'],
+        'FEST':['ナワバリバトル']
+    };
+
+    const rule_list=['ALL','ナワバリバトル','ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'];
+    
+    //動的セレクトボックス作成
+    function setMenuOptions(selectedgenre){
+        const selectWeaponName=document.getElementById('weapon');
+        //menuList.disabled=false;//選択可能にする
+        //要素を削除
+        while(selectWeaponName.firstChild){
+                selectWeaponName.removeChild(selectWeaponName.firstChild);
+            }
+        weapon_list[selectedgenre].forEach((menu,index)=>{
+            //要素を追加
+            const option=document.createElement('option');
+            option.value=menu;
+            option.innerHTML=menu;
+            selectWeaponName.appendChild(option);
+        });
+    };
+
+
+    //ジャンルを選ぶためのセレクトボックスを指定
+    const genreSelect=document.getElementById('weapon-genre');
+    genreSelect.addEventListener('change', (e) => {
+    setMenuOptions(e.target.value);  
+    })
+
+
+</script>
+
+<!--/mode-->
+
+    <script>
+
+        var win_count={
+            "ユノハナ大渓谷":[0,0,0,0,0],
+            "ゴンズイ地区":[0,0,0,0,0],
+            "ヤガラ市場":[0,0,0,0,0],
+            "マテガイ放水路":[0,0,0,0,0],
+            "ナメロウ金属":[0,0,0,0,0],
+            "マサバ海峡大橋":[0,0,0,0,0],
+            "キンメダイ美術館":[0,0,0,0,0],
+            "マヒマヒリゾート&スパ":[0,0,0,0,0],
+            "海女美術大学":[0,0,0,0,0],
+            "チョウザメ造船":[0,0,0,0,0],
+            "ザトウマーケット":[0,0,0,0,0],
+            "スメーシーワールド":[0,0,0,0,0],
+            "クサヤ温泉":[0,0,0,0,0],
+            "ヒラメが丘団地":[0,0,0,0,0],
+        };
+
+        var lose_count={
+            "ユノハナ大渓谷":[0,0,0,0,0],
+            "ゴンズイ地区":[0,0,0,0,0],
+            "ヤガラ市場":[0,0,0,0,0],
+            "マテガイ放水路":[0,0,0,0,0],
+            "ナメロウ金属":[0,0,0,0,0],
+            "マサバ海峡大橋":[0,0,0,0,0],
+            "キンメダイ美術館":[0,0,0,0,0],
+            "マヒマヒリゾート&スパ":[0,0,0,0,0],
+            "海女美術大学":[0,0,0,0,0],
+            "チョウザメ造船":[0,0,0,0,0],
+            "ザトウマーケット":[0,0,0,0,0],
+            "スメーシーワールド":[0,0,0,0,0],
+            "クサヤ温泉":[0,0,0,0,0],
+            "ヒラメが丘団地":[0,0,0,0,0],
+        };
+
+        var win_count_all=0;
+        var lose_count_all=0;
+
+        function count_win(mode,rule){
+            win_count[mode][rule]+=1;
+            win_count_all+=1;
+        }
+
+        function count_lose(mode,rule){
+            lose_count[mode][rule]+=1;
+            lose_count_all+=1;
+        }
+
+        function calc_winrate(mode,rule){
+            return win_count["mode"][rule]/(win_count["mode"][rule]+lose_count["mode"][rule]);
+        }
+
+        function print_result(id,mode,rule){
+            var elm=document.getElementById(id);
+            var winrate='None';
+            if ((win_count[mode][rule]+lose_count[mode][rule])!=0){
+                winrate=win_count[mode][rule]/(win_count[mode][rule]+lose_count[mode][rule])
+            }
+            elm.innerHTML=("<p>勝率:"+Math.round(winrate*1000)/10+"% 勝利数:"+win_count[mode][rule]+" 敗北数: "+lose_count[mode][rule]+"</p>");  
+        }
+
+        function print_result_all(){
+            var match_count=win_count_all+lose_count_all;
+            var winrate='None';
+            if(match_count!=0){
+                winrate=win_count_all/match_count;
+            }
+            document.write("<h2>総試合数:"+match_count+"  勝率:"+Math.round(winrate*1000)/10+"%  勝利数:"+win_count_all+"  敗北数:"+lose_count_all+"</h2>");
+        }
+
+
+
+        //絞り込みweapon,stage
+
+    </script>
+
+    {% for result in df %}
+        {% for i in result['data']['vsHistoryDetail']['myTeam']['players'] %}
+            {% if i['isMyself']==true %}
+                {% if i['weapon']['name']==weapon %}
+                    
+                        {% if 'ユノハナ大渓谷'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ゴンズイ地区'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ヤガラ市場'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'マテガイ放水路'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ナメロウ金属'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'マサバ海峡大橋'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'キンメダイ美術館'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'マヒマヒリゾート&スパ'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if '海女美術大学'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'チョウザメ造船'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ザトウマーケット'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'スメーシーワールド'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'クサヤ温泉'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ヒラメが丘団地'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                {% endif %}
+                
+                {% if weapon=='ALL' %}
+                        {% if 'ユノハナ大渓谷'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ユノハナ大渓谷',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ユノハナ大渓谷',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ゴンズイ地区'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ゴンズイ地区',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ゴンズイ地区',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ヤガラ市場'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヤガラ市場',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヤガラ市場',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'マテガイ放水路'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マテガイ放水路',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マテガイ放水路',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ナメロウ金属'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ナメロウ金属',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ナメロウ金属',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'マサバ海峡大橋'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マサバ海峡大橋',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マサバ海峡大橋',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'キンメダイ美術館'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('キンメダイ美術館',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('キンメダイ美術館',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'マヒマヒリゾート&スパ'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('マヒマヒリゾート&スパ',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('マヒマヒリゾート&スパ',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if '海女美術大学'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('海女美術大学',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('海女美術大学',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'チョウザメ造船'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('チョウザメ造船',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('チョウザメ造船',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ザトウマーケット'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ザトウマーケット',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ザトウマーケット',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'スメーシーワールド'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('スメーシーワールド',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('スメーシーワールド',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'クサヤ温泉'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('クサヤ温泉',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('クサヤ温泉',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'ヒラメが丘団地'==result['data']['vsHistoryDetail']['vsStage']['name'] %}
+                            {% if 'ナワバリバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',0)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',0)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチエリア'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',1)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',1)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチヤグラ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',2)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',2)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチホコバトル'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',3)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',3)</script>
+                                {% endif %}
+                            {% endif %}
+                            {% if 'ガチアサリ'==result['data']['vsHistoryDetail']['vsRule']['name'] %}
+                                {% if "WIN"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_win('ヒラメが丘団地',4)</script>
+                                {% endif %}
+                                {% if "LOSE"==result['data']['vsHistoryDetail']['judgement'] %}
+                                    <script>count_lose('ヒラメが丘団地',4)</script>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    <div id="winrate">
+    <h2>使用ブキ:{{weapon}}</h2>
+    <h2>モード:{{mode}}</h2>
+    <script>print_result_all()</script>
+    <h3>ユノハナ大渓谷</h3>
+        <h4>ナワバリバトル</h4>
+        <p id="yunohana_0">a</p>
+        <script>print_result("yunohana_0",'ユノハナ大渓谷',0)</script>
+        <h4>ガチエリア</h4>
+        <p id="yunohana_1">a</p>
+        <script>print_result("yunohana_1",'ユノハナ大渓谷',1)</script>
+        <h4>ガチヤグラ</h4>
+        <p id="yunohana_2">a</p>
+        <script>print_result("yunohana_2",'ユノハナ大渓谷',2)</script>
+        <h4>ガチホコバトル</h4>
+        <p id="yunohana_3">a</p>
+        <script>print_result("yunohana_3",'ユノハナ大渓谷',3)</script>
+        <h4>ガチアサリ</h4>
+        <p id="yunohana_4">a</p>
+        <script>print_result("yunohana_4",'ユノハナ大渓谷',4)</script>
+        
+        <h3>ゴンズイ地区</h3>
+            <h4i['judgement']>ナワバリバトル</h4>
+            <p id="gonzui_0">a</p>
+            <script>print_result("gonzui_0",'ゴンズイ地区',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="gonzui_1">a</p>
+            <script>print_result("gonzui_1",'ゴンズイ地区',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="gonzui_2">a</p>
+            <script>print_result("gonzui_2",'ゴンズイ地区',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="gonzui_3">a</p>
+            <script>print_result("gonzui_3",'ゴンズイ地区',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="gonzui_4">a</p>
+            <script>print_result("gonzui_4",'ゴンズイ地区',4)</script>
+
+            <h3>ヤガラ市場</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="yagara_0">a</p>
+            <script>print_result("yagara_0",'ヤガラ市場',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="yagara_1">a</p>
+            <script>print_result("yagara_1",'ヤガラ市場',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="yagara_2">a</p>
+            <script>print_result("yagara_2",'ヤガラ市場',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="yagara_3">a</p>
+            <script>print_result("yagara_3",'ヤガラ市場',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="yagara_4">a</p>
+            <script>print_result("yagara_4",'ヤガラ市場',4)</script>
+
+            <h3>マテガイ放水路</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="mategai_0">a</p>
+            <script>print_result("mategai_0",'マテガイ放水路',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="mategai_1">a</p>
+            <script>print_result("mategai_1",'マテガイ放水路',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="mategai_2">a</p>
+            <script>print_result("mategai_2",'マテガイ放水路',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="mategai_3">a</p>
+            <script>print_result("mategai_3",'マテガイ放水路',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="mategai_4">a</p>
+            <script>print_result("mategai_4",'マテガイ放水路',4)</script>
+
+            <h3>ナメロウ金属</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="namerou_0">a</p>
+            <script>print_result("namerou_0",'ナメロウ金属',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="namerou_1">a</p>
+            <script>print_result("namerou_1",'ナメロウ金属',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="namerou_2">a</p>
+            <script>print_result("namerou_2",'ナメロウ金属',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="namerou_3">a</p>
+            <script>print_result("namerou_3",'ナメロウ金属',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="namerou_4">a</p>
+            <script>print_result("namerou_4",'ナメロウ金属',4)</script>
+
+            <h3>マサバ海峡大橋</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="masaba_0">a</p>
+            <script>print_result("masaba_0",'マサバ海峡大橋',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="masaba_1">a</p>
+            <script>print_result("masaba_1",'マサバ海峡大橋',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="masaba_2">a</p>
+            <script>print_result("masaba_2",'マサバ海峡大橋',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="masaba_3">a</p>
+            <script>print_result("masaba_3",'マサバ海峡大橋',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="masaba_4">a</p>
+            <script>print_result("masaba_4",'マサバ海峡大橋',4)</script>
+
+            <h3>キンメダイ美術館</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="kinme_0">a</p>
+            <script>print_result("kinme_0",'キンメダイ美術館',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="kinme_1">a</p>
+            <script>print_result("kinme_1",'キンメダイ美術館',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="kinme_2">a</p>
+            <script>print_result("kinme_2",'キンメダイ美術館',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="kinme_3">a</p>
+            <script>print_result("kinme_3",'キンメダイ美術館',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="kinme_4">a</p>
+            <script>print_result("kinme_4",'キンメダイ美術館',4)</script>
+
+            <h3>マヒマヒリゾート&スパ</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="mahimahi_0">a</p>
+            <script>print_result("mahimahi_0",'マヒマヒリゾート&スパ',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="mahimahi_1">a</p>
+            <script>print_result("mahimahi_1",'マヒマヒリゾート&スパ',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="mahimahi_2">a</p>
+            <script>print_result("mahimahi_2",'マヒマヒリゾート&スパ',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="mahimahi_3">a</p>
+            <script>print_result("mahimahi_3",'マヒマヒリゾート&スパ',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="mahimahi_4">a</p>
+            <script>print_result("mahimahi_4",'マヒマヒリゾート&スパ',4)</script>
+
+            <h3>海女美術大学</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="amabi_0">a</p>
+            <script>print_result("amabi_0",'海女美術大学',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="amabi_1">a</p>
+            <script>print_result("amabi_1",'海女美術大学',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="amabi_2">a</p>
+            <script>print_result("amabi_2",'海女美術大学',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="amabi_3">a</p>
+            <script>print_result("amabi_3",'海女美術大学',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="amabi_4">a</p>
+            <script>print_result("amabi_4",'海女美術大学',4)</script>
+
+            <h3>チョウザメ造船</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="tyouzame_0">a</p>
+            <script>print_result("tyouzame_0",'チョウザメ造船',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="tyouzame_1">a</p>
+            <script>print_result("tyouzame_1",'チョウザメ造船',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="tyouzame_2">a</p>
+            <script>print_result("tyouzame_2",'チョウザメ造船',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="tyouzame_3">a</p>
+            <script>print_result("tyouzame_3",'チョウザメ造船',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="tyouzame_4">a</p>
+            <script>print_result("tyouzame_4",'チョウザメ造船',4)</script>
+
+            <h3>ザトウマーケット</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="zatou_0">a</p>
+            <script>print_result("zatou_0",'ザトウマーケット',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="zatou_1">a</p>
+            <script>print_result("zatou_1",'ザトウマーケット',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="zatou_2">a</p>
+            <script>print_result("zatou_2",'ザトウマーケット',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="zatou_3">a</p>
+            <script>print_result("zatou_3",'ザトウマーケット',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="zatou_4">a</p>
+            <script>print_result("zatou_4",'ザトウマーケット',4)</script>
+
+            <h3>スメーシーワールド</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="sumesi_0">a</p>
+            <script>print_result("sumesi_0",'スメーシーワールド',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="sumesi_1">a</p>
+            <script>print_result("sumesi_1",'スメーシーワールド',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="sumesi_2">a</p>
+            <script>print_result("sumesi_2",'スメーシーワールド',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="sumesi_3">a</p>
+            <script>print_result("sumesi_3",'スメーシーワールド',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="sumesi_4">a</p>
+            <script>print_result("sumesi_4",'スメーシーワールド',4)</script>
+
+            <h3>クサヤ温泉</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="kusaya_0">a</p>
+            <script>print_result("kusaya_0",'クサヤ温泉',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="kusaya_1">a</p>
+            <script>print_result("kusaya_1",'クサヤ温泉',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="kusaya_2">a</p>
+            <script>print_result("kusaya_2",'クサヤ温泉',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="kusaya_3">a</p>
+            <script>print_result("kusaya_3",'クサヤ温泉',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="kusaya_4">a</p>
+            <script>print_result("kusaya_4",'クサヤ温泉',4)</script>
+
+            <h3>ヒラメが丘団地</h3>
+            <h4>ナワバリバトル</h4>
+            <p id="hirame_0">a</p>
+            <script>print_result("hirame_0",'ヒラメが丘団地',0)</script>
+            <h4>ガチエリア</h4>
+            <p id="hirame_1">a</p>
+            <script>print_result("hirame_1",'ヒラメが丘団地',1)</script>
+            <h4>ガチヤグラ</h4>
+            <p id="hirame_2">a</p>
+            <script>print_result("hirame_2",'ヒラメが丘団地',2)</script>
+            <h4>ガチホコバトル</h4>
+            <p id="hirame_3">a</p>
+            <script>print_result("hirame_3",'ヒラメが丘団地',3)</script>
+            <h4>ガチアサリ</h4>
+            <p id="hirame_4">a</p>
+            <script>print_result("hirame_4",'ヒラメが丘団地',4)</script>
+
+
+
+</body>
+
+</html>

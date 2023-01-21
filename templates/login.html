@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>スプラトゥーン3 戦績管理アプリ(仮)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+    <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<!-- toggle section -->
+<input type="checkbox" id="check">
+<label for="check">
+    <i class="fa-solid fa-bars" id="hambargerBtn"></i>
+    <i class="fas fa-times" id="cancel"></i>
+</label>
+
+<!-- sidebar section -->
+<div class="sidebar">
+    <header><a href="{{url_for('Home')}}">Home</a></header>
+    <dt><a href="{{url_for('login')}}">ログイン</a></dt>
+    <dt><a href="#">ログアウト</a></dt>
+    <dl><dt>Schedule</dt>
+        <ul>
+            <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
+            <li><a href="#">バンカラマッチ</a></li>
+            <li><a href="#">サーモンラン</a></li>
+        </ul>
+    </dl>
+    <dl><dt>戦績分析ツール</dt>
+        <ul>
+            <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
+            <li><a href="#">勝率</a></li>
+            <li><a href="#">名前検索</a></li>
+            <li><a href="#">チーム別勝率</a></li>
+            <li><a href="#">時間帯別勝率</a></li>
+        </ul>
+    </dl>
+</div>
+<div id="container">
+<div class="login-box">
+    <form action="{{url_for('login')}}" method="post">
+        <a href="{{url}}" target="_blank">情報を取得</a>
+        <h1>ニンテンドーアカウントでログイン</h1>
+        <input type="password" name="password" placeholder="URL"/>
+        <input type="submit" name="login-button" value="ログイン"/>
+    </form>
+</div>
+</div>
+
+<!-- /sidebar section -->
+
+</body>
