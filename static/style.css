@@ -1,0 +1,295 @@
+@charset "utf-8";
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1p&display=swap');
+
+
+*{
+	margin: 0;
+	padding: 0;
+    font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;	/*フォント種類*/
+	font-size: 16px;	/*文字サイズ*/
+	line-height: 2;		/*行間*/
+	box-sizing: border-box;
+	list-style: none;
+	text-decoration: none;
+	/*font-family: 'M PLUS 1p', sans-serif;*/
+}
+
+.sidebar {
+	position: fixed;
+	left: -250px;
+	background: rgb(31, 83, 86);
+	width: 250px;
+	height: 100%;
+	transition: all 0.5s;
+	user-select: none;
+}
+
+.sidebar header a{
+	font-size: 24px;
+	padding-left: 60px;
+	color: white;
+	text-align: center;
+	line-height: 70px;
+	font-family: 'M PLUS 1p', sans-serif;
+}
+
+.sidebar dt a{
+	display: block;
+	height: 100%;
+	width: 100%;
+	color: white;
+	line-height: 40px;
+	font-size: 20px;
+	padding-left: 45px;
+	border-top: 2px solid white;
+}
+
+.sidebar dl dt {
+	display: block;
+	height: 100%;
+	width: 100%;
+	color: white;
+	line-height: 65px;
+	font-size: 20px;
+	padding-left: 30px;
+	border-top: 2px solid white;
+	border-bottom: 1px solid white;
+}
+
+.sidebar dl ul{
+	display: block;
+	height: 80%;
+	width: 100%;
+	line-height: 40px;
+	font-size: 20px;
+	padding-left: 40px;
+	border-top: 1px solid white;
+}
+
+.sidebar dl ul a{
+	color: white;
+}
+
+dl ul li:hover a{
+	padding-left: 8px;
+	transition: 0.4s;
+}
+
+
+
+/* toggle section */
+#check {
+	display: none;
+}
+
+label #hambargerBtn,
+label #cancel {
+	position: fixed;
+	cursor: pointer;
+	background: #053e67;
+	border-radius: 3px;
+}
+
+label #hambargerBtn{
+	left: 40px;
+	top: 25px;
+	font-size: 25px;
+	color: white;
+	padding: 6px 12px;
+	transition: all 0.5s;
+}
+
+label #cancel{
+	z-index: 10;
+	left: -55px;
+	top: 17px;
+	font-size: 30px;
+	color: white;
+	padding: 4px 9px;
+	transition: all 0.5s;
+}
+
+#check:checked ~ .sidebar{
+	left: 0;
+}
+
+#check:checked ~ label #hambargerBtn{
+	left: 250px;
+    opacity: 0;
+	pointer-events: none;
+}
+
+#check:checked ~ label #cancel{
+	left: 195px;
+}
+
+
+/*container*/
+#container{
+	background: black;
+	color: white;
+}
+
+#container header{
+	text-align: center;
+}
+
+#container2{
+	background: aliceblue;
+}
+
+
+/*login*/
+.login-box{
+	box-sizing: border-box;
+	color: white;
+	background: rgb(157, 196, 138);
+	position: absolute;
+	top: 20px;
+	left: 260px;
+	padding: 0;
+	height: 600px;
+	width: 500px;
+	
+	font-size: 20px;
+	box-shadow: 0 2px 4px #4b4b4b;
+	padding: 40px;
+}
+.login-box h1{
+	margin-top: 0px;
+	margin-bottom: 20px;
+	font-weight: 300;
+	font-size: 24px;
+	color: white;
+	text-align: center;
+}
+
+/*show_json*/
+#show_json {
+	background-color: #3f4149;
+	color:rgb(231, 231, 231);
+}
+
+#show_json h1{
+	color: #E1F56F;
+	text-align: center;
+	font-size: 32px;
+}
+
+
+#result_sum{
+	background-color: rgb(44, 0, 126);
+	text-align: center;
+	padding-right: 120px;
+}
+
+#result_sum h3{
+	font-size: 18px;
+}
+
+#show_json p{
+	padding-left: 100px;
+}
+
+#win{
+	color: white;
+	background-color: red;
+	font-size: 20px;
+}
+
+#lose{
+	color: white;
+	background-color: blue;
+	font-size: 20px;
+}
+
+
+
+img.weapon{
+	width: 32px;
+	height: 30px;
+}
+
+/*myteam*/
+.myteam{
+	box-sizing: border-box;
+	width: 800px;
+}
+
+.myteam h3{
+	padding-left: 100px;
+	font-size: 24px;
+	color: #E1F56F;
+}
+
+.myteam h4{
+	color: rgb(144, 144, 144);
+	padding-left: 130px;
+	font-size: 16px;
+}
+
+.myteam p{
+	font-size: 16px;
+	text-decoration: underline;
+}
+
+.myteam p span{
+	display: inline-block;
+	width: 250px;
+	padding-left: 30px;
+}
+
+#rule{
+	padding-left: 100px;
+	color: #E1F56F;
+}
+
+/*end show_json*/
+/*show_winrate*/
+#winrate{
+	background: #3f4149;
+	padding-left: 100px;
+}
+
+#winrate h2{
+	font-size: 24px;
+	padding-left: 120px;
+	color: #E1F56F;
+}
+
+#winrate h3{
+	font-size: 20px;
+	color: #E1F56F;
+}
+
+#winrate h4{
+	padding-left: 30px;
+	color: rgb(218, 218, 218);
+}
+
+#winrate p{
+	padding-left: 50px;
+	color: rgb(218, 206, 190);
+}
+
+
+img.stage{
+	display: block;
+	position: relative;
+	left: 20;
+}
+
+.select{
+	padding: 5px;
+	padding-left: 120px;
+	background: rgb(80, 152, 79);
+}
+
+
+/*footer*/
+footer {
+	clear: both;
+	text-align: center;	/*文字をセンタリング*/
+	padding: 30px 0px 10px;	/*上、左右、下へのボックス内の余白*/
+}
+
