@@ -2,6 +2,7 @@ import json
 from pprint import pprint
 import pymongo
 import my_s3s
+from collections import Counter
 from flask import (Flask, current_app, g, redirect, render_template, request,
                     url_for) 
 
@@ -25,13 +26,33 @@ def login():
             
             my_s3s.gen_new_tokens("blank",user_url=request.form['password'])
             #my_s3s.prefetch_checks(False)
-            return render_template("home.html")
+            
         else:
             my_s3s.set_language()
 
             return render_template("login.html",url=my_s3s.iksm.get_nintendo_url(my_s3s.A_VERSION,my_s3s.APP_USER_AGENT))
 
-    return "Hello"
+    return render_template("home.html")
+
+@app.route("/logout",methods=["GET","POST"])
+def logout():
+    if my_s3s.SESSION_TOKEN =="" or my_s3s.GTOKEN == "" or my_s3s.BULLETTOKEN == "":
+        return render_template("home.html")
+    else:
+        if request.method  == 'POST':
+            
+            #config.txtの内容をクリア
+            
+            with open('config.txt','r+')as f:
+                f.truncate(0)
+            
+            # #game_col.delete_many({})
+            # print(my_s3s.SESSION_TOKEN)
+            
+    
+    return render_template("logout.html")
+
+
     
 @app.route("/show_winrate",methods=["GET","POST"])
 def show_winrate():
@@ -41,23 +62,37 @@ def show_winrate():
         weapon=request.form['weapon']
     else:
         weapon =request.args.get('weapon','all')
-        
+    
         
     return render_template("show_winrate.html",df=df,weapon=weapon)
 
-@app.route('/name_search',methods=["GET","POST"])
-def name_search():
-    with open('./templates/results.json') as f:
-        df = json.load(f)
+@app.route("/show_winrate_stage",methods=["GET","POST"])
+def show_winrate_stage():
+    df = game_col.find().sort("playedTime",-1)
     
     if request.method == 'POST':
-        username = request.form['username']
+        weapon=request.form['weapon']
     else:
+        weapon =request.args.get('weapon','all')
+    
+        
+    return render_template("show_winrate_stage.html",df=df,weapon=weapon)
+
+@app.route('/name_search',methods=["GET","POST"])
+def name_search():
+    ids = Counter()
+    if request.method == 'POST':
+        
+        username = request.form['username']
+        
+    else:
+        print("GET")
+        
         username = request.args.get('username', 'noname')
     
-    df = game_col.find().sort("playedTime",-1)
+    df = game_col.find({}).sort("playedTime",-1)
 
-    return render_template("name_search.html", df=df, username=username)
+    return render_template("name_search.html", ids=ids, df=df, username=username)
 
 
 
@@ -70,6 +105,13 @@ def config():
 @app.route("/show_json",methods=["GET","POST"])
 def show_json():
     
+    if game_col.find_one is None:
+        if my_s3s.SESSION_TOKEN == "":
+
+            return redirect('login')
+        my_s3s.set_language()
+
+        my_s3s.fetch_json("ink",separate=True, exportall=True, specific=True, skipprefetch=True)
 
     if request.method == 'POST':
         if my_s3s.SESSION_TOKEN == "":
@@ -82,25 +124,29 @@ def show_json():
     df = game_col.find().sort("playedTime",-1)
     return render_template("show_json.html",df=df)
 
-@app.route("/show_all_json")
-def show_all_json():
-    with open('./templates/all.json') as f:
-        df = json.load(f)
-
-    df_player = df['data']['vsHistoryDetail']['myTeam']['players']
-    
-    return render_template("show_all_json.html",df=df_player)
-    return "hello"
 
 
 
 @app.route('/compatibility',methods=["GET","POST"])
 def compatibility():
-    with open('./templates/results.json') as f:
-        df = json.load(f)
+    
+    df = game_col.find().sort("playedTime",-1)
 
     if request.method == 'POST':
         username = request.form['username']
     else:
         username = request.args.get('username', 'noname')
     return render_template("compatibility.html", df=df, username=username)
+
+@app.route('/trend_weapon',methods=["GET","POST"])
+def trend_weapon():
+    
+    df = game_col.find().sort("playedTime",-1)
+    
+    if request.method == 'POST':
+        mode = request.form['mode']
+        search_type = request.form['search_type']
+    else:
+        mode = request.args.get('mode', 'ALL')
+        search_type = request.args.get('search_type', 'strongest')
+    return render_template("trend_weapon.html", df=df, mode=mode,search_type=search_type)

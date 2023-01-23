@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <title>ITS_Json_Information</title>
         <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+        <link rel="stylesheet" href="{{url_for('static',filename='show_json.css')}}">
         <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
     </head>
 <body>
@@ -14,24 +15,20 @@
     <i class="fas fa-times" id="cancel"></i>
 </label>
 
-<!-- sidebar section -->
 <div class="sidebar">
     <header><a href="{{url_for('Home')}}">Home</a></header>
-    <dl><dt>Schedule</dt>
-        <ul>
-            <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
-            <li><a href="#">バンカラマッチ</a></li>
-            <li><a href="#">サーモンラン</a></li>
-        </ul>
-    </dl>
+    <dt><a href="{{url_for('login')}}">ログイン</a></dt>
+    <dt><a href="{{url_for('logout')}}">ログアウト</a></dt>
+    
     <dl><dt>戦績分析ツール</dt>
         <ul>
             <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
             <li><a href="{{url_for('show_winrate')}}">勝率</a></li>
+            <li><a href="{{url_for('show_winrate_stage')}}">ステージ別勝率</a></li>
             <li><a href="{{url_for('name_search')}}">名前検索</a></li>
             <li><a href="{{url_for('compatibility')}}">ユーザー相性</a></li>
-            <li><a href="#">チーム別勝率</a></li>
-            <li><a href="#">時間帯別勝率</a></li>
+            <li><a href="{{url_for('trend_weapon')}}">環境分析</a></li>
+            
         </ul>
     </dl>
 </div>
@@ -81,7 +78,10 @@
         {% for result in df %}
 
 
+            <div class ="box">
+            <details>
 
+            <summary>
             {% if ("WIN"==result['myTeam']['judgement']) %}
                 <p id="win">Judgement:{{result['myTeam']['judgement']}}</p>
             {% elif ("LOSE"==result['myTeam']['judgement']) %}
@@ -89,6 +89,7 @@
             {% else %}
                 <p id="draw">Judgement:{{result['myTeam']['judgement']}}</p>
             {% endif %}
+            </summary>
 
             <script>
                 function game_count(){
@@ -114,10 +115,10 @@
             <h3>{{result['playedTime']}}</h3>
             <h3>Team Member</h3>
             
-            
+        
             {% for i in result['myTeam']['players'] %}
                 <h4>{{i['byname']}}</h4> 
-                <p><span>{{i['name']}} <img src="{{i['weapon']['image']['url']}}" class="weapon"></span>
+                <p><span>{{i['name']}} <img src="{{i['weapon']['image']['url']}}" class="weapon"></span><br>
                    {{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>
                 
                 
@@ -142,10 +143,12 @@
                 </script>
             
             {% endfor %}
-
+            <h3>Opponent Team</h3>
+           
+           
             {% for i in result['otherTeams'][0]['players'] %}
                 <h4>{{i['byname']}}</h4> 
-                <p><span>{{i['name']}} <img src="{{i['weapon']['image']['url']}}" class="weapon"></span>
+                <p><span>{{i['name']}} <img src="{{i['weapon']['image']['url']}}" class="weapon"></span><br>
                    {{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>
                 
                 
@@ -170,8 +173,9 @@
                 </script>
             
             {% endfor %}
-
+            
             </div>
+            
             <div id="rule">
             <h3>Mode:{{result['vsMode']['mode']}} Rule:{{result['vsRule']['name']}} Stage:{{result['vsStage']['name']}}</h3>
             
@@ -179,7 +183,7 @@
             </div>
             
             <hr size="3">
-        
+            </div>
         {% endfor %}
 
         <script>

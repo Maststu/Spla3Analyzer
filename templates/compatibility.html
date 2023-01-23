@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="keywords" content="ITS,Splatoon3,スプラトゥーン3,戦績管理">
     <meta name="description" content="スプラトゥーン3の戦績管理アプリ">
-    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='compatibility.css')}}">
     <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -21,39 +21,26 @@
 <!-- sidebar section -->
 <div class="sidebar">
     <header><a href="{{url_for('Home')}}">Home</a></header>
-    <dl><dt>対戦結果</dt>
-        <ul>
-            <li><a href="{{url_for('show_json')}}">最近のバトル</a></li>
-            <li><a href="#">ナワバリバトル</a></li>
-            <li><a href="#">バンカラマッチ</a></li>
-            <li><a href="#">Xマッチ</a></li>
-            <li><a href="#">サーモンラン</a></li>
-        </ul>
-    </dl>
-    <dl><dt>Schedule</dt>
-        <ul>
-            <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
-            <li><a href="#">バンカラマッチ</a></li>
-            <li><a href="#">サーモンラン</a></li>
-        </ul>
-    </dl>
+    <dt><a href="{{url_for('login')}}">ログイン</a></dt>
+    <dt><a href="{{url_for('logout')}}">ログアウト</a></dt>
+    
     <dl><dt>戦績分析ツール</dt>
         <ul>
-            <li><a href="#">勝率</a></li>
+            <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
+            <li><a href="{{url_for('show_winrate')}}">勝率</a></li>
+            <li><a href="{{url_for('show_winrate_stage')}}">ステージ別勝率</a></li>
             <li><a href="{{url_for('name_search')}}">名前検索</a></li>
             <li><a href="{{url_for('compatibility')}}">ユーザー相性</a></li>
-            <li><a href="#">チーム別勝率</a></li>
-            <li><a href="#">時間帯別勝率</a></li>
+            <li><a href="{{url_for('trend_weapon')}}">環境分析</a></li>
+            
         </ul>
     </dl>
 </div>
 <!-- /sidebar section -->
 <script>
-    var data={};
-    var win=0;
-    var lose=0;
-    function judge_count(key,judge){
-        //var k=hash[key];
+    var data_friend={};
+    var data_enemy={};
+    function judge_count(key,judge,data){
         if(key in data){
             data[key][judge]++;
         }else{
@@ -61,53 +48,84 @@
             data[key][judge]++;
         }
     }
-    function count(judge){
-        if(judge=="WIN"){
-            win++;
-        }else{
-            lose++;
-        }
-        //console.log(judge);
-    }
-    function print_result(id){
-        for(i in data){
-            //console.log(data[i]);
-        }
+    function print_result(id,data,flag,box){
+        var elm=document.getElementById(id);
+        var text1,text2,text3;
+        var ranking_num=10;
         var array = Object.keys(data).map((k)=>({ key: k, value: data[k]['WIN']+data[k]['LOSE'],WINRATE: data[k]['WIN']/(data[k]['WIN']+data[k]['LOSE'])}));//value味方回数
-        array.sort((a, b) => b.value - a.value);
-        for(let step = 0; step < 10; step++){
-            console.log(array[step].key,array[step].value);
-        }
-
-        array.sort((a, b) => b.WINRATE - a.WINRATE);
-        var c=0;
-        for(let step = 0;; step++){
-            if(c==10)break;
-            if(array[step].value>=5){
-                console.log(array[step].key,array[step].WINRATE);
-                c++;
+        for(i of array){//５以下は削除
+            if(i.value<5){
+                delete array[array.indexOf(i)];
             }
         }
+        array=array.filter(Boolean);
+        if(array.length<ranking_num)ranking_num=array.length;
 
-        //console.log(data);
-        //var elm=document.getElementById(id);
-        //elm.innerHTML=("<p>勝率:"+Math.round(1000*win/(win+lose))/10+"% 勝利数:"+win+"回 敗北数:"+lose+"回</p>");
+        array.sort((a, b) => b.WINRATE - a.WINRATE);//降順
+        text1="<div class="+box+">";
+        text1+="<h1>"+flag+"にいる時の勝率上位ランキング</h1>";
+        text1+="<table border=1><tbody><tr><th>順位</th><th class ='username'>ユーザー名</th><th>勝率</th><th>"+flag+"回数</th></tr>";
+        for(let step = 0; step<ranking_num; step++){
+            text1+="<tr><td>"+(step+1)+"</td><td>"+array[step].key+"</td><td>"+Math.round(1000*array[step].WINRATE)/10+"%</td><td>"+array[step].value+"回</td></tr>";
+        }
+        text1+="</tbody></table>";
+        text1+="</div>";
+        elm.innerHTML+=text1;
+
+        array.sort((a, b) => a.WINRATE - b.WINRATE);//昇順
+        text2="<div class='"+box+"'>";
+        text2+="<h1>"+flag+"にいる時の勝率下位ランキング</h1>";
+        text2+="<table border=1><tbody><tr><th>順位</th><th class ='username'>ユーザー名</th><th>勝率</th><th>"+flag+"回数</th></tr>";
+        for(let step = 0; step<ranking_num; step++){
+            text2+="<tr><td>"+(step+1)+"</td><td>"+array[step].key+"</td><td>"+Math.round(1000*array[step].WINRATE)/10+"%</td><td>"+array[step].value+"回</td></tr>";
+        }
+        text2+="</tbody></table>";
+        text2+="</div>";
+        elm.innerHTML+=text2;
+
+        array.sort((a, b) => b.value - a.value);
+        text3="<div  class='"+box+"'>";
+        text3+="<h1>"+flag+"回数上位ランキング</h1>";
+        text3+="<table border=1><tbody><tr><th>順位</th><th class ='username'>ユーザー名</th><th>勝率</th><th>"+flag+"回数</th></tr>";
+        for(let step = 0; step < ranking_num; step++){
+            text3+="<tr><td>"+(step+1)+"</td><td>"+array[step].key+"</td><td>"+Math.round(1000*array[step].WINRATE)/10+"%</td><td>"+array[step].value+"回</td></tr>";
+        }
+        text3+="</tbody></table>";
+        text3+="</div><br>";
+        elm.innerHTML+=text3;
     }
+   
 </script>
 <div id="main">
-    
+    <h1>ユーザー相性機能</h1>
+    <p>※５回以上マッチングしたことがあるプレイヤーが対象</p>
+    <p id="compatibility"></p>
     {% for result in df %}
-        {% for i in result['data']['vsHistoryDetail']['myTeam']['players'] %}
-        <script>
-            //count({{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}});
-            judge_count({{i['name']|tojson}},{{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}});
-        </script>
+
+        {% for i in result['myTeam']['players'] %}
+            {% if i['isMyself'] == false%}
+            <script>
+                judge_count({{i['name']|tojson}},{{result['myTeam']['judgement']|tojson}},data_friend);
+            </script>
+            {% endif %}
+            
+           
         {% endfor %}
+
+        {% for i in result['otherTeams'][0]['players'] %}
+            <script>
+                judge_count({{i['name']|tojson}},{{result['myTeam']['judgement']|tojson}},data_enemy);
+            </script>
+        {% endfor %}
+
     {% endfor %}
-    <!--<p id="compatibility"></p>-->
-    <script>
-        print_result("compatibility")
-    </script>
+    <div">
+        <script>print_result("compatibility",data_friend,"味方","box1");</script>
+    </div>
+    <div>
+        <script>print_result("compatibility",data_enemy,"相手","box1");</script>
+    </div>
+
 
 <!--footer
 <footer>

@@ -5,8 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>スプラトゥーン3 戦績管理アプリ(仮)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="keywords" content="ITS,Splatoon3,スプラトゥーン3,戦績管理">
-    <meta name="description" content="スプラトゥーン3の戦績管理アプリ">
     <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
     <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
 </head>
@@ -36,32 +34,15 @@
         </ul>
     </dl>
 </div>
+<div id="logout">
+<div class = "logout">
+    <p>本当にログアウトしてもよろしいでしょうか？</p>
+    <form action="{{url_for('logout')}}" method="post">
+        
+        <input type="submit" name="logout-button" value="ログアウト"/>
+    </form>
+</div>
+</div>
 <!-- /sidebar section -->
 
-<!--タイトルなどを画像で出力-->
-<div id="container">
-<header>
-<h1> スプラトゥーン3 戦績管理ツール</h1>
-<h1>Spla3 Analyzer</h1>
-<h1 id="mainimage"><a href="{{url_for('Home')}}"><img src="{{url_for('static',filename='mainimage_test.png')}}"></a></h1>
-</header>
-
-
-
-
-
-<!--footer
-
-<footer>
-<small>Copyright&copy;2022 Team ITS All Rights Reserved.</small>
-</footer>
-
--->
-
-
-
-
-</div>
-<!--/container-->
 </body>
-</html>

@@ -293,3 +293,9 @@ footer {
 	padding: 30px 0px 10px;	/*上、左右、下へのボックス内の余白*/
 }
 
+
+#logout {
+	background-color: #3f4149;
+	color:rgb(231, 231, 231);
+	text-align: center;
+}

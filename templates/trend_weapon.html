@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ITS_勝率</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='trend_weapon.css')}}">
+    <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<!-- toggle section -->
+<input type="checkbox" id="check">
+<label for="check">
+    <i class="fa-solid fa-bars" id="hambargerBtn"></i>
+    <i class="fas fa-times" id="cancel"></i>
+</label>
+
+<!-- sidebar section -->
+<div class="sidebar">
+    <header><a href="{{url_for('Home')}}">Home</a></header>
+    <dt><a href="{{url_for('login')}}">ログイン</a></dt>
+    <dt><a href="{{url_for('logout')}}">ログアウト</a></dt>
+    
+    <dl><dt>戦績分析ツール</dt>
+        <ul>
+            <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
+            <li><a href="{{url_for('show_winrate')}}">勝率</a></li>
+            <li><a href="{{url_for('show_winrate_stage')}}">ステージ別勝率</a></li>
+            <li><a href="{{url_for('name_search')}}">名前検索</a></li>
+            <li><a href="{{url_for('compatibility')}}">ユーザー相性</a></li>
+            <li><a href="{{url_for('trend_weapon')}}">環境分析</a></li>
+            
+        </ul>
+    </dl>
+</div>
+<!-- /sidebar section -->
+<form action="{{url_for('trend_weapon')}}" method="POST">
+    <div class="select">
+    <select name="mode" id="mode" value="{{mode}}">
+        <option hidden value="ALL">モードを選んでください</option>
+        <option value="ALL">ALL</option>
+        <option value="REGULAR">レギュラーマッチ</option>
+        <option value="BANKARA">バンカラマッチ</option>
+        <option value="PRIVATE">プライベートマッチ</option>
+        <option value="X_MATCH">Xマッチ</option>
+        <option value="FEST">フェスマッチ</option>
+    </select>
+    <select name="search_type" id="search_type" value="{{search_type}}">
+        <option hidden value="strongest">検索形式を選んでください</option>
+        <option value="strongest">strongest</option>
+        <option value="popular">popular</option>
+    </select>
+    <input type="submit" value="武器を表示">
+    </div>
+</form>
+
+<script>
+    const stage_list=['ユノハナ大渓谷','ゴンズイ地区','ヤガラ市場','マテガイ放水路',
+                    'ナメロウ金属','マサバ海峡大橋','キンメダイ美術館','マヒマヒリゾート＆スパ',
+                    '海女美術大学','チョウザメ造船','ザトウマーケット','スメーシーワールド',
+                    'クサヤ温泉','ヒラメが丘団地'];
+    const stage_img={
+        'ユノハナ大渓谷':'<img src={{url_for('static',filename='amabi.png')}}>',
+        'ゴンズイ地区':'<img src={{url_for('static',filename='gonzui.png')}}>',
+        'ヤガラ市場':'<img src={{url_for('static',filename='yagara.png')}}>',
+        'マテガイ放水路':'<img src={{url_for('static',filename='mategai.png')}}>',
+        'ナメロウ金属':'<img src={{url_for('static',filename='namerou.png')}}>',
+        'マサバ海峡大橋':'<img src={{url_for('static',filename='masaba.png')}}>',
+        'キンメダイ美術館':'<img src={{url_for('static',filename='kinme.png')}}>',
+        'マヒマヒリゾート＆スパ':'<img src={{url_for('static',filename='mahimahi.png')}}>',
+        '海女美術大学':'<img src={{url_for('static',filename='amabi.png')}}>',
+        'チョウザメ造船':'<img src={{url_for('static',filename='tyouzame.png')}}>',
+        'ザトウマーケット':'<img src={{url_for('static',filename='zatou.png')}}>',
+        'スメーシーワールド':'<img src={{url_for('static',filename='sumesi.png')}}>',
+        'クサヤ温泉':'<img src={{url_for('static',filename='kusaya.png')}}>',
+        'ヒラメが丘団地':'<img src={{url_for('static',filename='hirame.png')}}>',
+    };
+    const mode_list={
+        'ALL':['ナワバリバトル','ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'],
+        'REGULAR':['ナワバリバトル'],
+        'BANKARA':['ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'],
+        'PRIVATE':['ナワバリバトル','ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'],
+        'X_MATCH':['ガチエリア','ガチヤグラ','ガチホコバトル','ガチアサリ'],
+        'FEST':['ナワバリバトル']
+    };
+    const rule_list={
+        'ナワバリバトル':'<img src={{url_for('static',filename='regular.jpg')}} width="24" height="24">',
+        'ガチエリア':'<img src={{url_for('static',filename='area.jpg')}} width="24" height="24">',
+        'ガチヤグラ':'<img src={{url_for('static',filename='yagura.jpg')}} width="24" height="24">',
+        'ガチホコバトル':'<img src={{url_for('static',filename='hoko.jpg')}} width="24" height="24">',
+        'ガチアサリ':'<img src={{url_for('static',filename='asari.jpg')}} width="24" height="24">',
+    }
+    data={};
+    weapon_img={};
+    function weapon_count(weapon,judge,rule,stage,img){
+        if(stage in data){
+        }else{
+            data[stage]={};
+        }
+        if(rule in data[stage]){
+        }else{
+            data[stage][rule]={};
+        }
+        if(weapon in data[stage][rule]){
+        }else{
+            data[stage][rule][weapon]={'WIN':0,'LOSE':0};
+            weapon_img[weapon]='<img src='+img+'>';
+        }
+        data[stage][rule][weapon][judge]++;
+    }
+    function print_result(id){
+        var elm=document.getElementById(id);
+        var text;
+        var type={{search_type|tojson}};
+        var mode={{mode|tojson}};
+        console.log(type);
+        console.log(mode);
+        for(i of stage_list){//ステージのループ
+            const img=stage_img[i];
+            text="<h3>"+img+"</h3>";
+            text+="<h3>"+i+"</h3>";
+            if(i in data){
+                for(j of mode_list[mode]){//ルールのループ,ナワバリ,エリア,ホコ,ヤグラ,アサリ
+                    text+="<h4 class='weapon'>"+rule_list[j];
+                    if(j in data[i]){
+                        var array=Object.keys(data[i][j]).map((k)=>({ key: k, value: data[i][j][k]['WIN']+data[i][j][k]['LOSE'],WINRATE:data[i][j][k]['WIN']/(data[i][j][k]['WIN']+data[i][j][k]['LOSE'])}));
+                        if(type=="strongest"){
+                            array.sort((a, b) => b.WINRATE - a.WINRATE);//勝率並べ
+                        }else{
+                            array.sort((a, b) => b.value - a.value);//回数並べ
+                        }
+                        //text+="<div class='weapon'>"
+                        for(let step = 0; step < 4; step++){
+                            text+=weapon_img[array[step].key];
+                            if(array.length==step+1)break;
+                        }
+                        //text+="</div>"
+                    }
+                    text+="</h4>";
+                }
+            }
+            elm.innerHTML+=text;
+        }
+    }
+</script>
+<div id="main">
+    {% for result in df %}
+        {% for i in result['myTeam']['players'] %}
+            {% if result['vsMode']['mode']==mode or 'ALL'==mode %}
+            <script>
+                weapon_count({{i['weapon']['name']|tojson}},{{result['myTeam']['judgement']|tojson}},
+                {{result['vsRule']['name']|tojson}},{{result['vsStage']['name']|tojson}},
+                {{i['weapon']['image']['url']|tojson}});
+            </script>
+            {% endif %}
+        {% endfor %}
+        {% for i in result['otherTeams'][0]['players'] %}
+            {% if result['vsMode']['mode']==mode or 'ALL'==mode %}
+            <script>
+                weapon_count({{i['weapon']['name']|tojson}},{{result['otherTeams'][0]['judgement']|tojson}},
+                {{result['vsRule']['name']|tojson}},{{result['vsStage']['name']|tojson}},
+                {{i['weapon']['image2dThumbnail']['url']|tojson}});
+            </script>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    <div id="main_stage">
+        <h2>モード:{{mode}}</h2>
+        <h2>形式:{{search_type}}</h2>
+    </div>
+    <div id="result">
+        <script>print_result("result");</script>
+    </div>
+
+</div>

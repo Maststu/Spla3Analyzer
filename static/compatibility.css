@@ -1,0 +1,182 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;	/*フォント種類*/
+	font-size: 16px;	/*文字サイズ*/
+	line-height: 2;		/*行間*/
+	box-sizing: border-box;
+	list-style: none;
+	text-decoration: none;
+    
+}
+
+.sidebar {
+	position: fixed;
+	left: -250px;
+	background: rgb(31, 83, 86);
+	width: 250px;
+	height: 100%;
+	transition: all 0.5s;
+	user-select: none;
+}
+
+.sidebar header a{
+	font-size: 24px;
+	padding-left: 60px;
+	color: white;
+	text-align: center;
+	line-height: 70px;
+	font-family: 'M PLUS 1p', sans-serif;
+}
+
+.sidebar dt a{
+	display: block;
+	height: 100%;
+	width: 100%;
+	color: white;
+	line-height: 40px;
+	font-size: 20px;
+	padding-left: 45px;
+	border-top: 2px solid white;
+}
+
+.sidebar dl dt {
+	display: block;
+	height: 100%;
+	width: 100%;
+	color: white;
+	line-height: 65px;
+	font-size: 20px;
+	padding-left: 30px;
+	border-top: 2px solid white;
+	border-bottom: 1px solid white;
+}
+
+.sidebar dl ul{
+	display: block;
+	height: 80%;
+	width: 100%;
+	line-height: 40px;
+	font-size: 20px;
+	padding-left: 40px;
+	border-top: 1px solid white;
+}
+
+.sidebar dl ul a{
+	color: white;
+}
+
+dl ul li:hover a{
+	padding-left: 8px;
+	transition: 0.4s;
+}
+
+
+
+/* toggle section */
+#check {
+	display: none;
+}
+
+label #hambargerBtn,
+label #cancel {
+	position: fixed;
+	cursor: pointer;
+	background: #053e67;
+	border-radius: 3px;
+}
+
+label #hambargerBtn{
+	left: 40px;
+	top: 25px;
+	font-size: 25px;
+	color: white;
+	padding: 6px 12px;
+	transition: all 0.5s;
+}
+
+label #cancel{
+	z-index: 10;
+	left: -55px;
+	top: 17px;
+	font-size: 30px;
+	color: white;
+	padding: 4px 9px;
+	transition: all 0.5s;
+}
+
+#check:checked ~ .sidebar{
+	left: 0;
+}
+
+#check:checked ~ label #hambargerBtn{
+	left: 250px;
+    opacity: 0;
+	pointer-events: none;
+}
+
+#check:checked ~ label #cancel{
+	left: 195px;
+}
+
+#main_stage{
+    font-size: 28px;
+    padding-left: 170px;
+    background: #2B2E37;
+	color: rgb(231, 231, 231);
+}
+
+#main_stage h2{
+	padding-left: 100px;
+}
+
+#result{
+    background: #2B2E37;
+    font-size: 24px;
+    padding-left: 100px;
+	color: rgb(231, 231, 231);
+}
+
+#result h3{
+    font-size: 20px;
+}
+
+#result h4{
+    padding-left: 30px;
+}
+
+#result p{
+    padding-left: 50px;
+}
+
+#main{
+    background: #2B2E37;
+    font-size: 24px;
+	color: rgb(231, 231, 231);
+	padding: 5px;
+	padding-left: 120px;
+}
+
+th,td {
+    border: solid 1px;  /* 枠線指定 */
+    padding: 3px;      /* 余白指定 */
+}
+ 
+table {
+    border-collapse:  collapse; /* セルの線を重ねる */
+}
+th {
+    font-weight:  normal;       /* 文字の太さ指定 */
+}
+
+td {
+    text-align:  center;        /* 文字の揃え位置指定 */
+}
+.username{
+    width:200px;
+}
+.box1{
+    display: inline-block;
+    padding: 10px;
+	margin: 10px;
+}

@@ -20,32 +20,28 @@
 <div class="sidebar">
     <header><a href="{{url_for('Home')}}">Home</a></header>
     <dt><a href="{{url_for('login')}}">ログイン</a></dt>
-    <dt><a href="#">ログアウト</a></dt>
-    <dl><dt>Schedule</dt>
-        <ul>
-            <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
-            <li><a href="#">バンカラマッチ</a></li>
-            <li><a href="#">サーモンラン</a></li>
-        </ul>
-    </dl>
+    <dt><a href="{{url_for('logout')}}">ログアウト</a></dt>
+    
     <dl><dt>戦績分析ツール</dt>
         <ul>
             <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
-            <li><a href="#">勝率</a></li>
-            <li><a href="#">名前検索</a></li>
-            <li><a href="#">チーム別勝率</a></li>
-            <li><a href="#">時間帯別勝率</a></li>
+            <li><a href="{{url_for('show_winrate')}}">勝率</a></li>
+            <li><a href="{{url_for('show_winrate_stage')}}">ステージ別勝率</a></li>
+            <li><a href="{{url_for('name_search')}}">名前検索</a></li>
+            <li><a href="{{url_for('compatibility')}}">ユーザー相性</a></li>
+            <li><a href="{{url_for('trend_weapon')}}">環境分析</a></li>
+            
         </ul>
     </dl>
 </div>
 <div id="container">
 <div class="login-box">
-    <form action="{{url_for('login')}}" method="post">
-        <a href="{{url}}" target="_blank">情報を取得</a>
-        <h1>ニンテンドーアカウントでログイン</h1>
-        <input type="password" name="password" placeholder="URL"/>
-        <input type="submit" name="login-button" value="ログイン"/>
-    </form>
+<form action="{{url_for('login')}}" method="post">
+    <a href="{{url}}" target="_blank">情報を取得</a>
+    <h1>ニンテンドーアカウントでログイン</h1>
+    <input type="password" name="password" placeholder="URL"/>
+    <input type="submit" name="login-button" value="ログイン"/>
+</form>
 </div>
 </div>
 

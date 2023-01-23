@@ -314,7 +314,7 @@ def fetch_json(which, separate=False, exportall=False, specific=False, numbers_o
 				ink_list.extend(battle_ids)
 				salmon_list.extend(job_ids)
 			else: # ALL DATA - TAKES A LONG TIME
-				thread_pool.map(fetch_detailed_result, [True]*len(battle_ids), battle_ids)
+				thread_pool.map(fetch_detailed_result,[True]*len(battle_ids), battle_ids)
 				#thread_pool.map(fetch_detailed_result, [False]*len(job_ids), job_ids)
 
 				

@@ -25,20 +25,18 @@
         <!-- sidebar section -->
         <div class="sidebar">
             <header><a href="{{url_for('Home')}}">Home</a></header>
-            <dl><dt>Schedule</dt>
-                <ul>
-                    <li><a href="{{url_for('Home')}}">ナワバリバトル</a></li>
-                    <li><a href="#">バンカラマッチ</a></li>
-                    <li><a href="#">サーモンラン</a></li>
-                </ul>
-            </dl>
+            <dt><a href="{{url_for('login')}}">ログイン</a></dt>
+            <dt><a href="{{url_for('logout')}}">ログアウト</a></dt>
+            
             <dl><dt>戦績分析ツール</dt>
                 <ul>
                     <li><a href="{{url_for('show_json')}}">対戦履歴</a></li>
                     <li><a href="{{url_for('show_winrate')}}">勝率</a></li>
+                    <li><a href="{{url_for('show_winrate_stage')}}">ステージ別勝率</a></li>
                     <li><a href="{{url_for('name_search')}}">名前検索</a></li>
-                    <li><a href="#">チーム別勝率</a></li>
-                    <li><a href="#">時間帯別勝率</a></li>
+                    <li><a href="{{url_for('compatibility')}}">ユーザー相性</a></li>
+                    <li><a href="{{url_for('trend_weapon')}}">環境分析</a></li>
+                    
                 </ul>
             </dl>
         </div>
@@ -58,18 +56,19 @@
 
             <div id="result"></div>
             <script>
-               
+                
                 index = {};
             </script>
             
-
+            
             {% for result in df %}
                 <script>var result_show = false;</script>
-                {% for i in result['data']['vsHistoryDetail']['myTeam']['players'] %}
+                {% for i in result['myTeam']['players'] %}
                 <script>
+                    
                     var name_search = {{username|tojson}};
                     var name = {{i['name']|tojson}};
-                    var regex = new RegExp("^" + name_search + ".*");
+                    var regex = new RegExp(".*" + name_search + ".*");
                     
                     var result = name.match(regex);
                     var id = {{i['id']|tojson}};
@@ -78,10 +77,13 @@
                     //var elm = document.getElementById("player");
                     
                     if(result != null){
-                        result_show = true;
-                        var time = {{result['data']['vsHistoryDetail']['playedTime']|tojson}};
                         
-                        var judge = {{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}};
+                        
+                        
+                        result_show = true;
+                        var time = {{result['playedTime']|tojson}};
+                        
+                        var judge = {{result['myTeam']['judgement']|tojson}};
                         var weapon_name = {{i['weapon']['name']|tojson}};
                         
 
@@ -139,23 +141,23 @@
                 
                 <script>
                     if(result_show){
-                        if("WIN"=={{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}}){
-                            document.write("<p id=\"win\">Judgement:"+{{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}}+ "</p>");
+                        if("WIN"=={{result['myTeam']['judgement']|tojson}}){
+                            document.write("<p id=\"win\">Judgement:"+{{result['myTeam']['judgement']|tojson}}+ "</p>");
                         }else{
-                            document.write("<p id=\"lose\">Judgement:"+{{result['data']['vsHistoryDetail']['myTeam']['judgement']|tojson}}+ "</p>");
+                            document.write("<p id=\"lose\">Judgement:"+{{result['myTeam']['judgement']|tojson}}+ "</p>");
                         }
                     document.write("<div class=\"myteam\">");
-                    document.write("<h3>{{result['data']['vsHistoryDetail']['playedTime']}}</h3>");
+                    document.write("<h3>{{result['playedTime']}}</h3>");
                     document.write("<h3>Team Member</h3>")
                     }
                 
                 </script>
-                {% for i in result['data']['vsHistoryDetail']['myTeam']['players'] %}
+                {% for i in result['myTeam']['players'] %}
                         <script>
                             
 
                             if(result_show){
-                                
+                               
                                 document.write("<h4>{{i['byname']}}</h4>");
                                 var red_flag = false; 
                                 var blue_flag = false;
@@ -186,10 +188,10 @@
                     if(result_show){
                         document.write("</div>");
                         document.write("<div id=\"rule\">");
-                        document.write("<h3>Mode:{{result['data']['vsHistoryDetail']['vsMode']['mode']}} Rule:{{result['data']['vsHistoryDetail']['vsRule']['name']}} Stage:{{result['data']['vsHistoryDetail']['vsStage']['name']}}</h3>");
+                        document.write("<h3>Mode:{{result['vsMode']['mode']}} Rule:{{result['vsRule']['name']}} Stage:{{result['vsStage']['name']}}</h3>");
                         
                     
-                        document.write("<h3><img src=\"{{result['data']['vsHistoryDetail']['vsStage']['image']['url']}}\"></h3>");
+                        document.write("<h3><img src=\"{{result['vsStage']['image']['url']}}\"></h3>");
                         document.write("</div>");
                         var elm = document.getElementById("result_data");
                         
@@ -198,7 +200,14 @@
                 </script>
             {% endfor %}
            
-           
+            
+
+                   
+
+                
+
+
+
             <script>
                 var elm2 = document.getElementById("result");
                 elm2.innerHTML += "<p>検索してヒットしたプレイヤーとのデータ</p>";
