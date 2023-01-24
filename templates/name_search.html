@@ -2,15 +2,19 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+        <link rel="stylesheet" href="{{url_for('static',filename='show_json.css')}}">
+        <link rel="stylesheet" href="{{url_for('static',filename='name_search.css')}}">
         <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
         <title>ITS_Json_Information</title>
         <script>
-            hash = {}; 
-            hashs = {};
-            win = {};
-            lose = {};
+            our_hash = {}; 
+            opo_hash = {};
+            our_win = {};
+            our_lose = {};
+            opo_win = {};
+            opo_lose = {};
             weapon = {};
+            weapon_url = {};
         </script>
     </head>
     <body>
@@ -42,15 +46,77 @@
         </div>
         
         
+        <script>
+            var game_count=0;
+            var ksum=0;
+            var dsum=0;
+            var asum=0;
+            var win_sum=0;
+            var lose_sum=0;
+            var krate,drate,arate;
+            var game_sum=0;
+            var regulargame_sum,bankaragame_sum,xmatchgame_sum,privategame_sum,fes_sum;
+            regulargame_sum=bankaragame_sum=xmatchgame_sum=privategame_sum=0;
+            fes_sum=0;
+            
+            const mode_list={
+                'REGULAR':'<img src={{url_for('static',filename='regular.jpg')}}>',
+                'BANKARA':'<img src={{url_for('static',filename='bankara.jpg')}}>',
+                'PRIVATE':'<img src={{url_for('static',filename='private.jpg')}}>',
+                'X_MATCH':'<img src={{url_for('static',filename='xmatch.jpg')}}>',
+                'FEST':'<img src={{url_for('static',filename='festmatch.jpg')}}>'};
+
+            const rule_list={
+                'ナワバリバトル':'<img src={{url_for('static',filename='regular.jpg')}}>',
+                'ガチエリア':'<img src={{url_for('static',filename='area.jpg')}}>',
+                'ガチヤグラ':'<img src={{url_for('static',filename='yagura.jpg')}}>',
+                'ガチホコバトル':'<img src={{url_for('static',filename='hoko.jpg')}}>',
+                'ガチアサリ':'<img src={{url_for('static',filename='asari.jpg')}}>',
+            };
+            
+            
+            function calc_rate(){
+                krate=ksum/game_sum;
+                drate=dsum/game_sum;
+                arate=dsum/game_sum;
+            }
+
+            function print_sum(){
+                var elm = document.getElementById('result_sum');
+                elm.innerHTML="<h1>全体成績</h1>";
+                elm.innerHTML+="<h2>総試合数" + game_sum + "回</h2>";
+                elm.innerHTML+="<h2>ナワバリ" + regulargame_sum + "回 " + "フェス" + fes_sum + "回" + "バンカラ" + bankaragame_sum + "回 " + "Xマッチ" + xmatchgame_sum + "回 " + "プライベートマッチ" + privategame_sum + "回 " + "</h2>";
+                elm.innerHTML+="<h2>キル数:"+ksum+" デス数:"+dsum+" アシスト数:"+asum+"</h2>";
+                elm.innerHTML+="<h2>キルレート:"+krate.toFixed(1)+"% デスレート:"+drate.toFixed(1)+"% アシストレート:"+arate.toFixed(1)+"%</h2>";
+                
+            }
+            
+            function get_image_rule(rule){
+                return "<div id='rule_img'>" + rule_list[rule] + "</p>";
+            }
+
+            function get_image_mode(mode){
+                return "<div id='mode_img'>" + mode_list[mode] + "</p>";
+            }
+            
+            function get_Date(data,id){
+                var time = new Date(data).toLocaleString();
+                return "<div id="+ id +">" + time + "</p>";
+            }
+
+            
+        </script>
 
         <div id="show_json">
-            <p>Name Search</p>
-            <p>名前を入力してください</p>
+            <h1>Name Search</h1>
+            <h1>名前を入力してください</h1>
             <form action="{{url_for('name_search')}}" method="POST">
-                
-                <input type="text" name="username" value="{{ username }}" padding="20px">
-                <button type="submit">検索</button>
-                <button type="reset">リセット</button>
+                <div class="select">
+                    <input type="text" name="username" value="{{ username }}" padding="20px">
+                    <input type="submit"/>
+                    <input type="submit" name = "reset" value="reset"/>
+                </div>
+            
             </form>
             
 
@@ -85,22 +151,26 @@
                         
                         var judge = {{result['myTeam']['judgement']|tojson}};
                         var weapon_name = {{i['weapon']['name']|tojson}};
-                        
+                        var url = {{i['weapon']['image']['url']|tojson}}
 
                         
                         
-                        if(hash[name]==null){
-                            hash[name]=1;
+                        if(our_hash[name]==null){
+                            our_hash[name]=1;
                             weapon[name]={'playerweapon':{}};
+                            
                             if(weapon[name]['playerweapon'][weapon_name]==null){
                                 weapon[name]['playerweapon'][weapon_name]=1;
+                                weapon_url[weapon_name]=url;
                             }
                             
                         }else{
                             
-                            hash[name]++;
+                            our_hash[name]++;
                             if(weapon[name]['playerweapon'][weapon_name]==null){
                                 weapon[name]['playerweapon'][weapon_name]=1;
+                                weapon_url[weapon_name]=url;
+
                             }else{
                                 weapon[name]['playerweapon'][weapon_name]++;
                             }
@@ -110,27 +180,104 @@
 
                         if(judge == "WIN"){
                             
-                            if(win[name]==null){
-                                win[name]=1;
+                            if(our_win[name]==null){
+                                our_win[name]=1;
                             }else{
-                                win[name]++;
+                                our_win[name]++;
                             }
                             
                         }
                         else if(judge == "LOSE"){
                             
-                            if(lose[name]==null){
-                                lose[name]=1;
+                            if(our_lose[name]==null){
+                                our_lose[name]=1;
                             }else{
-                                lose[name]++;
+                                our_lose[name]++;
                             }
                         }
 
                         
-                        var num = hash[name];
+                        var num = our_hash[name];
                         index[name]=1;
-                        var win_cnt = win[name];
-                        var lose_cnt = lose[name];
+                        
+                       
+
+
+                    }
+                </script>
+                {% endfor %}
+
+                {% for i in result['otherTeams'][0]['players'] %}
+                <script>
+                    
+                    
+                    var name = {{i['name']|tojson}};
+                    var regex = new RegExp(".*" + name_search + ".*");
+                    
+                    var result = name.match(regex);
+                    var id = {{i['id']|tojson}};
+                    var url = {{i['weapon']['image']['url']|tojson}}
+                    
+                    //var elm = document.getElementById("player");
+                    
+                    if(result != null){
+                        
+                        
+                        
+                        result_show = true;
+                        var time = {{result['playedTime']|tojson}};
+                        
+                        var judge = {{result['myTeam']['judgement']|tojson}};
+                        var weapon_name = {{i['weapon']['name']|tojson}};
+                        
+
+                        
+                        
+                        if(opo_hash[name]==null){
+                            opo_hash[name]=1;
+                            weapon[name]={'playerweapon':{}};
+                            weapon_url[name]=url;
+                           
+                            if(weapon[name]['playerweapon'][weapon_name]==null){
+                                weapon[name]['playerweapon'][weapon_name]=1;
+                                weapon_url[weapon_name]=url;
+                            }
+                            
+                        }else{
+                            
+                            opo_hash[name]++;
+                            if(weapon[name]['playerweapon'][weapon_name]==null){
+                                weapon[name]['playerweapon'][weapon_name]=1;
+                                weapon_url[weapon_name]=url;
+                            }else{
+                                weapon[name]['playerweapon'][weapon_name]++;
+                            }
+                            
+                            
+                        }
+
+                        if(judge == "WIN"){
+                            
+                            if(opo_lose[name]==null){
+                                opo_lose[name]=1;
+                            }else{
+                                opo_lose[name]++;
+                            }
+                            
+                        }
+                        else if(judge == "LOSE"){
+                            
+                            if(opo_win[name]==null){
+                                opo_win[name]=1;
+                            }else{
+                                opo_win[name]++;
+                            }
+                        }
+
+                        
+                        var num = opo_hash[name];
+                        index[name]=1;
+                        
                         
                        
 
@@ -140,60 +287,116 @@
                 {% endfor %}
                 
                 <script>
+                    
                     if(result_show){
+                        var text="";
+                        text+="<div class ='box'>";
+                        text+="<details>";
+                        text += "<summary>";
+                        text+="<div class = 'summary'>";
+                        text += get_image_mode({{result['vsMode']['mode']|tojson}});
+                        text += get_image_rule({{result['vsRule']['name']|tojson}});
+
+                        text+="<div id=\"stage\"><img src=" + {{result['vsStage']['image']['url']|tojson}} + "></div>";
                         if("WIN"=={{result['myTeam']['judgement']|tojson}}){
-                            document.write("<p id=\"win\">Judgement:"+{{result['myTeam']['judgement']|tojson}}+ "</p>");
+                            text+="<p id =\"win\">Judgement:" + {{result['myTeam']['judgement']|tojson}}+ "</p>";
+                            text+=get_Date({{result['playedTime']|tojson}},"win");
+                        }else if ("LOSE"=={{result['myTeam']['judgement']|tojson}}){
+                            text+="<p id =\"lose\">Judgement:" + {{result['myTeam']['judgement']|tojson}}+ "</p>";
+                            text+=get_Date({{result['playedTime']|tojson}},"lose");
                         }else{
-                            document.write("<p id=\"lose\">Judgement:"+{{result['myTeam']['judgement']|tojson}}+ "</p>");
+                            text+="<p id =\"draw\">Judgement:" + {{result['myTeam']['judgement']|tojson}}+ "</p>";
+                            text+=get_Date({{result['playedTime']|tojson}},"draw");
                         }
-                    document.write("<div class=\"myteam\">");
-                    document.write("<h3>{{result['playedTime']}}</h3>");
-                    document.write("<h3>Team Member</h3>")
+                        text+="</div>";
+                        text+="</summary>";
+                        
+                        text+="<div class='child_box'>";
+                        text+="<div class='player'>";
+                        text+="<div class='ours'>";
+                        text+="<table><tr>";
+
+                        text+="<th colspan='4'><h2 style='color:#E1F56F;'>My Team</h2></td>";
+                        text+="</tr><tr><th>Player</th><th>weapon</th><th>paint</th><th>result</th></tr>";
+                        
                     }
-                
                 </script>
                 {% for i in result['myTeam']['players'] %}
                         <script>
                             
+                            
 
                             if(result_show){
-                               
-                                document.write("<h4>{{i['byname']}}</h4>");
-                                var red_flag = false; 
-                                var blue_flag = false;
-                                if("kaososo" == {{i['name']|tojson}}){
-                                        blue_flag = true;
-                                        
-                                    }
-                                for(var key in index){
-                                    if(key == {{i['name']|tojson}}){
-                                        red_flag= true;
-                                        break;
-                                    }
-                                    
-                                }
-                                if(red_flag){
-                                    document.write("<p><span style=\"color:red; font-size:20px;\">{{i['name']}} <img src=\"{{i['weapon']['image']['url']}}\" class=\"weapon\"></span>{{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>"); 
-                                }else if(blue_flag){
-                                    document.write("<p><span style=\"color:blue; font-size:25px;\">{{i['name']}} <img src=\"{{i['weapon']['image']['url']}}\" class=\"weapon\"></span>{{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>");
-                                }else{
-                                    document.write("<p><span>{{i['name']}} <img src=\"{{i['weapon']['image']['url']}}\" class=\"weapon\"></span>{{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>");
-                                }
-
+                                
+                                text+="<tr><td><p>"+{{i['name']|tojson}}+ " </p></td><td>";
+                                            
+                                            
+                                            
+                                text+="<p><img src=" + {{i['weapon']['image']['url']|tojson}} + " class='weapon'>";
+                                text+="<img src=" + {{i['headGear']['primaryGearPower']['image']['url']|tojson}} + " class='Gear'>";
+                                text+="<img src=" + {{i['clothingGear']['primaryGearPower']['image']['url']|tojson}} + " class='Gear'>";
+                                text+="<img src=" + {{i['shoesGear']['primaryGearPower']['image']['url']|tojson}} + " class='Gear'>";
+                                text+="</td>";
+                                text+="<td>"+{{i['paint']|tojson}}+"</td>"
+                                text+="<td>"+{{i['result']['kill']}}+"キル" + {{i['result']['death']}} + "デス" + {{i['result']['assist']}}+"アシスト</p></td>";
+                                text+="</tr>";
+                                
                             }
                         </script>
                     
                 {% endfor %}
                 <script>
+                    text+= "</table>";
+                    text+= "</div>";
+                    var text1="";
+                    text1+= "<div class='oponents'>";
+                    text1+="<table><tr>";
+                    text1+= "<th colspan='4'><h2 style='color:#E1F56F;'>Oponent Team</h2></td>";
+                    text1+="</tr><tr><th>Player</th><th>weapon</th><th>paint</th><th>result</th></tr>";
+                </script>
+
+                {% for i in result['otherTeams'][0]['players'] %}
+                         <script>
+                            
+                            
+
+                            if(result_show){
+                                
+                                text1+="<tr><td><p>"+{{i['name']|tojson}}+ " </p></td><td>";
+                                            
+                                            
+                                            
+                                text1+="<p><img src=" + {{i['weapon']['image']['url']|tojson}} + " class='weapon'>";
+                                text1+="<img src=" + {{i['headGear']['primaryGearPower']['image']['url']|tojson}} + " class='Gear'>";
+                                text1+="<img src=" + {{i['clothingGear']['primaryGearPower']['image']['url']|tojson}} + " class='Gear'>";
+                                text1+="<img src=" + {{i['shoesGear']['primaryGearPower']['image']['url']|tojson}} + " class='Gear'>";
+                                text1+="</td>";
+                                text1+="<td>"+{{i['paint']|tojson}}+"</td>"
+                                text1+="<td>"+{{i['result']['kill']}}+"キル" + {{i['result']['death']}} + "デス" + {{i['result']['assist']}}+"アシスト</p></td>";
+                                text1+="</tr>";
+                                
+                            }
+                         </script>
+                    
+                {% endfor %}
+
+                <script>
                     if(result_show){
-                        document.write("</div>");
-                        document.write("<div id=\"rule\">");
-                        document.write("<h3>Mode:{{result['vsMode']['mode']}} Rule:{{result['vsRule']['name']}} Stage:{{result['vsStage']['name']}}</h3>");
+                        text1+= "</table>";
+                        text1+= "</div>";
+                        text1+="</div>";
+                        
+                        text1+="<div id=\"rule\">";
+                        text1+="<h3>Mode:{{result['vsMode']['mode']}} Rule:{{result['vsRule']['name']}} Stage:{{result['vsStage']['name']}}</h3>";
                         
                     
-                        document.write("<h3><img src=\"{{result['vsStage']['image']['url']}}\"></h3>");
-                        document.write("</div>");
-                        var elm = document.getElementById("result_data");
+                        text1+="<h3><img src=\"{{result['vsStage']['image']['url']}}\"></h3>";
+                        text1+="</div>";
+                        text1+="</div>";
+                        text1+="</details>";
+                        text1+="</div>";
+                        document.write(text+text1);
+                        
                         
                     }
                 
@@ -210,23 +413,70 @@
 
             <script>
                 var elm2 = document.getElementById("result");
-                elm2.innerHTML += "<p>検索してヒットしたプレイヤーとのデータ</p>";
+                
+                elm2.innerHTML += "<h1>検索してヒットしたプレイヤーとのデータ</h1>";
+                var data = "<div class='column'>";
+                
                 for(var key in index){
+
                     if(index[key]==1){
-                        elm2.innerHTML +="<p>" + "プレイヤー名\:" + key  + "</p>";
-                        elm2.innerHTML +="<p>" + "味方回数\:" + hash[key] + "</p>";
-                        elm2.innerHTML +="<p>" + "勝利数\:" + win[key] + "</p>";
-                        elm2.innerHTML +="<p>" + "敗北数\:" + lose[key] + "</p>";
-                        elm2.innerHTML +="<p>" + "勝率\:" + (win[key]/hash[key]).toPrecision(4) + "</p>";
+                        if(our_hash[key]==null)our_hash[key]=0;
+                        if(our_win[key]==null)our_win[key]=0;
+                        if(our_lose[key]==null)our_lose[key]=0;
+                        if(opo_hash[key]==null)opo_hash[key]=0;
+                        if(opo_win[key]==null)opo_win[key]=0;
+                        if(opo_lose[key]==null)opo_lose[key]=0;
+                        data += "<div class='player_profile'>";
+                        data +="<p id ='player_name'>" + "プレイヤー名\:" + key  + "</p>";
+                        var total_game = our_hash[key] + opo_hash[key]
+                        data +="<p>" + "総試合数\:" + total_game + "</p>";
+                        data += "<div class='ourtable'>";
+                        data += "<table><tr>";
+                        data +="<th>味方回数</th><th>勝利数</th><th>敗北数</th><th>勝率</th>";
+                        data += "</tr>";
+                        data += "<tr>";
+                        data +="<td><p>" + our_hash[key] + "</p></td>";
+                        data +="<td><p>"  + our_win[key] + "</p></td>";
+                        data +="<td><p>" + our_lose[key] + "</p></td>";
+                        data +="<td><p>" + (our_win[key]/our_hash[key]).toPrecision(4) + "</p></td>";
+                        data +="</tr></table>";
+                        data +="</div>";
+                        data += "<div class='opotable'>";
+                        data += "<table><tr>";
+                        data +="<th>敵回数</th><th>勝利数</th><th>敗北数</th><th>勝率</th>";
+                        data += "</tr>";
+                        data += "<tr>";
+                        data +="<td><p>" + opo_hash[key] + "</p></td>";
+                        data +="<td><p>"  + opo_win[key] + "</p></td>";
+                        data +="<td><p>" + opo_lose[key] + "</p></td>";
+                        data +="<td><p>" + (opo_win[key]/opo_hash[key]).toPrecision(4) + "</p></td>";
+                        data +="</tr></table>";
+                        data +="</div>";
+                        
+
+                        data += "<div class='weapontable'>";
+                        data += "<table style='width:100%'><tr>";
+                        data +="<th>使用武器名</th><th>使用回数</th><th>Image</th>";
+                        data += "</tr>";
                         for(var weapon_key in weapon[key]['playerweapon']){
-                            elm2.innerHTML +="<p>" + "使用武器\:" + weapon_key + "　使用回数\:" + weapon[key]['playerweapon'][weapon_key] + "</p>";//weapon[key][weapon_key] + "</p>";
+                            data += "<tr>";
+                            data += "<td><p>" + weapon_key + "</p></td><td><p>" + weapon[key]['playerweapon'][weapon_key] +"</p></td>";//weapon[key][weapon_key] + "</p>";
+                            data += "<td><p><img src=" + weapon_url[weapon_key] + "></p></td>";
+                            data += "</tr>";
                         }
-                        elm2.innerHTML += "<hr>";
+                        data +="</table>";
+                        data +="</div>";
+                       
+                        data += "</div>";
                     }
                 }
+                data += "</div>";
+                elm2.innerHTML+=data;
+                elm2.innerHTML+="<hr>";
             </script>
             
         </div>
+        <p id = "blankbox"></p>
     </body>
 </html>
 

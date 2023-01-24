@@ -1,13 +1,320 @@
-.box:after{
-    /* position:relative;
-    display: inline-block;
-    height:800px;
-    width:800px;
-    padding: 10px;
-    margin: 10px;
-    overflow: hidden;
+*{
+    margin: 0;
+    padding: 0;
+    font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;	/*フォント種類*/
+	/* font-size: 16px;	文字サイズ */
+	line-height: 2;		/*行間*/
+	box-sizing: border-box;
+	list-style: none;
+	text-decoration: none;
+    
+}
+
+.sidebar {
+	position: fixed;
+	left: -250px;
+	background: rgb(31, 83, 86);
+	width: 250px;
+	height: 100%;
+	transition: all 0.5s;
+	user-select: none;
+}
+
+.sidebar header a{
+	font-size: 24px;
+	padding-left: 60px;
+	color: white;
+	text-align: center;
+	line-height: 70px;
+	font-family: 'M PLUS 1p', sans-serif;
+}
+
+.sidebar dt a{
+	display: block;
+	height: 100%;
+	width: 100%;
+	color: white;
+	line-height: 40px;
+	font-size: 20px;
+	padding-left: 45px;
+	border-top: 2px solid white;
+}
+
+.sidebar dl dt {
+	display: block;
+	height: 100%;
+	width: 100%;
+	color: white;
+	line-height: 65px;
+	font-size: 20px;
+	padding-left: 30px;
+	border-top: 2px solid white;
+	border-bottom: 1px solid white;
+}
+
+.sidebar dl ul{
+	display: block;
+	height: 80%;
+	width: 100%;
+	line-height: 40px;
+	font-size: 20px;
+	padding-left: 40px;
+	border-top: 1px solid white;
+}
+
+.sidebar dl ul a{
+	color: white;
+}
+
+dl ul li:hover a{
+	padding-left: 8px;
+	transition: 0.4s;
+}
+
+
+
+/* toggle section */
+#check {
+	display: none;
+}
+
+label #hambargerBtn,
+label #cancel {
+	position: fixed;
+	cursor: pointer;
+	background: #053e67;
+	border-radius: 3px;
+}
+
+label #hambargerBtn{
+	left: 40px;
+	top: 25px;
+	font-size: 25px;
+	color: white;
+	padding: 6px 12px;
+	transition: all 0.5s;
+}
+
+label #cancel{
+	z-index: 10;
+	left: -55px;
+	top: 17px;
+	font-size: 30px;
+	color: white;
+	padding: 4px 9px;
+	transition: all 0.5s;
+}
+
+#check:checked ~ .sidebar{
+	left: 0;
+}
+
+#check:checked ~ label #hambargerBtn{
+	left: 250px;
+    opacity: 0;
+	pointer-events: none;
+}
+
+#check:checked ~ label #cancel{
+	left: 195px;
+}
+
+
+.update{
+    float:right;
+}
+
+.select{
+    
+	padding: 5px;
+	padding-left: 120px;
+	background: rgb(80, 152, 79);
+}
+
+.select select,input{
+    font-size:30px;
+}
+
+/* The container must be positioned relative: */
+.custom-select {
+    position: relative;
+    font-family: Arial;
+}
+
+.custom-select select {
+    display: none; /*hide original SELECT element: */
+}
+
+.select-selected {
+    background-color: DodgerBlue;
+}
+
+/* Style the arrow inside the select element: */
+.select-selected:after {
+    position: absolute;
     content: "";
-    clear: both; */
+    top: 14px;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border: 6px solid transparent;
+    border-color: #fff transparent transparent transparent;
+}
+
+/* Point the arrow upwards when the select box is open (active): */
+.select-selected.select-arrow-active:after {
+    border-color: transparent transparent #fff transparent;
+    top: 7px;
+}
+
+/* style the items (options), including the selected item: */
+.select-items div,.select-selected {
+    color: #ffffff;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+    cursor: pointer;
+}
+
+/* Style items (options): */
+.select-items {
+    position: absolute;
+    background-color: DodgerBlue;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 99;
+}
+
+/* Hide the items when the select box is closed: */
+.select-hide {
+    display: none;
+}
+
+.select-items div:hover, .same-as-selected {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+
+
+/*show_json*/
+#show_json {
+	background-color: #3f4149;
+	color:rgb(231, 231, 231);
+}
+
+#show_json:after{
+    content:"";
+    display:block;
+    clear:both;
+}
+
+#result_sum{
+	background-color: #ec7047;
+	text-align: center;
+	padding-right: 120px;
+}
+
+#result_sum h3{
+	font-size: 18px;
+}
+
+/* #show_json p{
+	padding-left: 100px;
+} */
+
+#win{
+    
+	color: white;
+	background-color: #FF7D7D;
+	font-size: 30px;
+    clear:both;
+}
+
+#lose{
+	color: white;
+	background-color: #7D7DFF;
+	font-size: 30px;
+    clear:both;
+}
+
+#draw{
+    color: white;
+	background-color: #FFB530;
+	font-size: 30px;
+    clear:both;
+}
+
+
+
+
+
+
+/* myteam
+.myteam{
+	box-sizing: border-box;
+	width: 800px;
+}
+
+.myteam h3{
+	padding-left: 100px;
+	font-size: 24px;
+	color: #E1F56F;
+}
+
+.myteam h4{
+	color: rgb(144, 144, 144);
+	padding-left: 130px;
+	font-size: 16px;
+}
+
+.myteam p{
+	font-size: 16px;
+	text-decoration: underline;
+}
+
+.myteam p span{
+	
+} */
+
+
+
+#rule{
+	padding-left: 100px;
+	color: #E1F56F;
+}
+
+
+
+img.stage{
+	display: block;
+	position: relative;
+	left: 20;
+}
+
+.select{
+	background: rgb(80, 152, 79);
+}
+
+.summary{
+    border-style:solid;
+    
+    border-width:5px;
+    border-radius:20px;
+    width:100%;
+    height:450px;
+    border-color:green;
+}
+
+.box{
+    
+    padding:100px;
+    height:10%;
+    float:left;
+}
+
+.box::after{
+    
     content: "";
     width:100%;
     clear: both;
@@ -16,17 +323,88 @@
 
 .child_box{
     
+    display:table;
+    background-color:#3f4149;
+    border:solid;
+    border-radius:20px;
+    border-color:green;
+    width: 2200px;
+    padding: 20px;
     
-    /* float:left;
-    width: 100%;
-    padding: 10px;
-    margin: 10px; */
+}
+
+
+
+
+.player table,th,td{
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding:5px;
+} 
+    
+.player th,td{
+    text-align: center;
+    font-size:30px;
+}
+.player td{
+    white-space:nowrap
+}
+
+.ours{
     float: left;
     width: 50%;
-    padding: 5px;
 }
 
-#rule{
-    clear:both;
-
+.oponents{
+    float: left;
+    width: 50%;
+   
 }
+
+.player p  span img{
+    width:100px;
+    height:100px;
+}
+
+.player{
+    padding:10px;
+}
+
+.player::after{
+    content: "";
+    clear: both;
+    display: table;
+}
+
+
+img.weapon{
+	width: 70px;
+	height: 70px;
+}
+
+img.Gear{
+    width:60px;
+    height:60px;
+}
+
+#rule_img img{
+    width:100px;
+    height:100px;
+    float:left;
+}
+
+
+#mode_img img{
+    
+    width:150px;
+    height:150px;
+    float:left;
+}
+
+#stage img{
+    width: 500px;
+    height:150px;
+    float:left;
+}
+
+

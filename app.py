@@ -82,8 +82,10 @@ def show_winrate_stage():
 def name_search():
     ids = Counter()
     if request.method == 'POST':
-        
-        username = request.form['username']
+        if request.form.get('reset'):
+            username = request.args.get('username', '')
+        else:
+            username = request.form['username']
         
     else:
         print("GET")
@@ -117,11 +119,24 @@ def show_json():
         if my_s3s.SESSION_TOKEN == "":
 
             return redirect('login')
-        my_s3s.set_language()
+        if request.form.get('update'):
+            my_s3s.set_language()
 
-        my_s3s.fetch_json("ink",separate=True, exportall=True, specific=True, skipprefetch=True)
-
-    df = game_col.find().sort("playedTime",-1)
+            my_s3s.fetch_json("ink",separate=True, exportall=True, specific=True, skipprefetch=True)
+            df = game_col.find("").sort("playedTime",-1)
+        elif request.form.get('mode'):
+            mode = request.form['mode']
+            if mode == "ALL":
+                df = game_col.find("").sort("playedTime",-1)
+            else:
+                df = game_col.find({"vsMode.mode":mode}).sort("playedTime",-1)
+           
+        else:
+            return "Not Found"
+        
+    else:
+        df = game_col.find().sort("playedTime",-1)
+    
     return render_template("show_json.html",df=df)
 
 

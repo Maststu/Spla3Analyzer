@@ -138,6 +138,13 @@ label #cancel{
 	background: aliceblue;
 }
 
+#blankbox{
+	margin       : auto;
+	width        : 100%;
+	height       : 600px;
+	background   : black;	
+}
+
 
 /*login*/
 .login-box{

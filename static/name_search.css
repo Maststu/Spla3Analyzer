@@ -1,0 +1,82 @@
+.select{
+	padding: 5px;
+	padding-left: 120px;
+	background: rgb(80, 152, 79);
+}
+
+
+.column{
+    
+    padding:100px;
+    height:10%;
+    
+	
+}
+.column::after{
+	content: "";
+    width:100%;
+    clear: both;
+    display: table;
+}
+
+.player_profile{
+	border-style:solid;
+    border-width:5px;
+    border-radius:20px;
+	padding:20px;
+    width:50%;
+    height:100%;
+    border-color:#1bFAFF;
+	float:left;
+	
+
+}
+
+#player_name{
+	font-size:30px;
+	color:#E1F56F;
+}
+
+.player_profile p{
+	font-size: 30px;
+}
+
+.player_profile table,th,td{
+	border: 1px solid black;
+    border-collapse: collapse;
+    padding:5px;
+}
+
+.player_profile th,td{
+    text-align: center;
+    font-size:30px;
+}
+.player_profile td{
+    white-space:nowrap
+}
+
+.ourtable{
+	float:left;
+	padding:20px;
+}
+
+.opotable{
+	float:left;
+	padding:20px;
+}
+
+.weapontable{
+	clear:both;
+	padding:20px;
+}
+p img{
+	height:80px;
+	width:80px;
+}
+
+#blankbox{
+	margin       : auto;
+	width        : 100%;
+	height       : 1000px;
+	background   : #3f4149;		
+}

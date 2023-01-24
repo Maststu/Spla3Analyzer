@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <title>ITS_Json_Information</title>
-        <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+        <!--<link rel="stylesheet" href="{{url_for('static',filename='style.css')}}"> !-->
         <link rel="stylesheet" href="{{url_for('static',filename='show_json.css')}}">
         <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
     </head>
@@ -47,7 +47,23 @@
             var regulargame_sum,bankaragame_sum,xmatchgame_sum,privategame_sum,fes_sum;
             regulargame_sum=bankaragame_sum=xmatchgame_sum=privategame_sum=0;
             fes_sum=0;
+            
+            const mode_list={
+                'REGULAR':'<img src={{url_for('static',filename='regular.jpg')}}>',
+                'BANKARA':'<img src={{url_for('static',filename='bankara.jpg')}}>',
+                'PRIVATE':'<img src={{url_for('static',filename='private.jpg')}}>',
+                'X_MATCH':'<img src={{url_for('static',filename='xmatch.jpg')}}>',
+                'FEST':'<img src={{url_for('static',filename='festmatch.jpg')}}>'};
 
+            const rule_list={
+                'ナワバリバトル':'<img src={{url_for('static',filename='regular.jpg')}}>',
+                'ガチエリア':'<img src={{url_for('static',filename='area.jpg')}}>',
+                'ガチヤグラ':'<img src={{url_for('static',filename='yagura.jpg')}}>',
+                'ガチホコバトル':'<img src={{url_for('static',filename='hoko.jpg')}}>',
+                'ガチアサリ':'<img src={{url_for('static',filename='asari.jpg')}}>',
+            };
+            
+            
             function calc_rate(){
                 krate=ksum/game_sum;
                 drate=dsum/game_sum;
@@ -55,134 +71,207 @@
             }
 
             function print_sum(){
-                var elm = document.getElementById('result_sum')
-                elm.innerHTML="<h3>全体成績</h3>";
-                elm.innerHTML+="<h3>総試合数" + game_sum + "回</h3>";
-                elm.innerHTML+="<h3>ナワバリ" + regulargame_sum + "回 " + "フェス" + fes_sum + "回" + "バンカラ" + bankaragame_sum + "回 " + "Xマッチ" + xmatchgame_sum + "回 " + "プライベートマッチ" + privategame_sum + "回 " + "</h3>";
-                elm.innerHTML+="<p>キル数:"+ksum+" デス数:"+dsum+" アシスト数:"+asum+"</p>";
-                elm.innerHTML+="<p>キルレート:"+krate.toFixed(1)+"% デスレート:"+drate.toFixed(1)+"% アシストレート:"+arate.toFixed(1)+"%</p>";
+                var elm = document.getElementById('result_sum');
+                elm.innerHTML="<h1>全体成績</h1>";
+                elm.innerHTML+="<h2>総試合数" + game_sum + "回</h2>";
+                elm.innerHTML+="<h2>ナワバリ" + regulargame_sum + "回 " + "フェス" + fes_sum + "回" + "バンカラ" + bankaragame_sum + "回 " + "Xマッチ" + xmatchgame_sum + "回 " + "プライベートマッチ" + privategame_sum + "回 " + "</h2>";
+                elm.innerHTML+="<h2>キル数:"+ksum+" デス数:"+dsum+" アシスト数:"+asum+"</h2>";
+                elm.innerHTML+="<h2>キルレート:"+krate.toFixed(1)+"% デスレート:"+drate.toFixed(1)+"% アシストレート:"+arate.toFixed(1)+"%</h2>";
                 
             }
+            
+            function print_image_rule(rule){
+                document.write("<div id='rule_img'>" + rule_list[rule] + "</p>");
+            }
+
+            function print_image_mode(mode){
+                document.write("<div id='mode_img'>" + mode_list[mode] + "</p>");
+            }
+            
+            function print_Date(data,id){
+                var time = new Date(data).toLocaleString();
+                document.write("<div id="+ id +">" + time + "</p>");
+            }
+
+            
         </script>
 
+        
+
+        <h1 style="text-align:center;">kaososo's Buttle Result</h1>
+       
+        <p id="result_sum">Hello</p>
+       <!--surround the select box with a "custom-select" DIV element. Remember to set the width:-->
+        
+        <div class="update">
         <form action="{{url_for('show_json')}}" method="POST">
-            <button type="submit">更新</button>
+            <div class="select">
+            <input type="submit" name = "update" value="更新"></button>
+            </div>
             
         </form>
-
-        <h1>kaososo's Buttle Result</h1>
-        <p id="result_sum">Hello</p>
-        
-        
-
+        </div>
+        <div class="a" >
+            <form action="{{url_for('show_json')}}" method="POST">
+                <div class="select">
+                <select name="mode" id="mode" value="{{mode}}">
+                    <option hidden value="ALL">モードを選んでください</option>
+                    <option value="ALL">ALL</option>
+                    <option value="REGULAR">レギュラーマッチ</option>
+                    <option value="BANKARA">バンカラマッチ</option>
+                    <option value="PRIVATE">プライベートマッチ</option>
+                    <option value="X_MATCH">Xマッチ</option>
+                    <option value="FEST">フェスマッチ</option>
+                </select>
+                
+                <input type="submit" value="filter">
+                </div>
+            </form>
+        </div>
         {% for result in df %}
 
 
             <div class ="box">
-            <details>
-
-            <summary>
-            {% if ("WIN"==result['myTeam']['judgement']) %}
-                <p id="win">Judgement:{{result['myTeam']['judgement']}}</p>
-            {% elif ("LOSE"==result['myTeam']['judgement']) %}
-                <p id="lose">Judgement:{{result['myTeam']['judgement']}}</p>
-            {% else %}
-                <p id="draw">Judgement:{{result['myTeam']['judgement']}}</p>
-            {% endif %}
-            </summary>
-
-            <script>
-                function game_count(){
-                    game_sum+=1;
-                    mode = {{ result["vsMode"]["mode"]|tojson}}
-
-                    if(mode == "REGULAR")
-                        regulargame_sum+=1;
-                    else if(mode == "BANKARA")
-                        bankaragame_sum+=1;
-                    else if(mode == "X_MATCH")
-                        xmatchgame_sum+=1;
-                    else if(mode == "PRIVATE")
-                        privategame_sum+=1;
-                    else
-                        fes_sum+=1;
-                }
-
-                game_count();
-            </script>
-            <div class="myteam">
-           
-            <h3>{{result['playedTime']}}</h3>
-            <h3>Team Member</h3>
-            
-        
-            {% for i in result['myTeam']['players'] %}
-                <h4>{{i['byname']}}</h4> 
-                <p><span>{{i['name']}} <img src="{{i['weapon']['image']['url']}}" class="weapon"></span><br>
-                   {{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>
                 
                 
+                <details>
 
-                   
-
-                <script>
+                    <summary>
                     
-                    function sum_result(){
-                        
-                        var name = {{i['name']|tojson}};
-                        if(name == "kaososo"){
-                            ksum += {{i['result']['kill']}};
-                            dsum += {{i['result']['death']}};
-                            asum += {{i['result']['assist']}};
+                    <div class = "summary">
+                    <script>
+                            print_image_mode({{result['vsMode']['mode']|tojson}});
+                            print_image_rule({{result['vsRule']['name']|tojson}});
+                    </script>
+                    <div id="stage"><img src="{{result['vsStage']['image']['url']}}"></div>
+                        {% if ("WIN"==result['myTeam']['judgement']) %}
+                            
+                            <p id ="win">Judgement:{{result['myTeam']['judgement']}}</p>
+                            <script>print_Date({{result['playedTime']|tojson}},"win");</script>
+                            
+                        {% elif ("LOSE"==result['myTeam']['judgement']) %}
+                            
+                            <p id="lose">Judgement:{{result['myTeam']['judgement']}}</p>
+                            <script>print_Date({{result['playedTime']|tojson}},"lose");</script>
+                        {% else %}
+                            
+                            <p id="draw">Judgement:{{result['myTeam']['judgement']}}</p>
+                            <script>print_Date({{result['playedTime']|tojson}},"draw");</script>
+                        {% endif %}
+
+                    </div>  
+                    </summary>
+
+                    <script>
+                        function game_count(){
+                            game_sum+=1;
+                            mode = {{ result["vsMode"]["mode"]|tojson}}
+
+                            if(mode == "REGULAR")
+                                regulargame_sum+=1;
+                            else if(mode == "BANKARA")
+                                bankaragame_sum+=1;
+                            else if(mode == "X_MATCH")
+                                xmatchgame_sum+=1;
+                            else if(mode == "PRIVATE")
+                                privategame_sum+=1;
+                            else
+                                fes_sum+=1;
                         }
-                        game_count+=1;
-                        
-                    }
 
-                    sum_result();
-                </script>
-            
-            {% endfor %}
-            <h3>Opponent Team</h3>
-           
-           
-            {% for i in result['otherTeams'][0]['players'] %}
-                <h4>{{i['byname']}}</h4> 
-                <p><span>{{i['name']}} <img src="{{i['weapon']['image']['url']}}" class="weapon"></span><br>
-                   {{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p>
+                        game_count();
+                    </script>
+                    <div class="child_box">
                 
-                
-
-                   
-
-                <script>
                     
-                    // function sum_result(){
-                        
-                    //     var name = {{i['name']|tojson}};
-                    //     if(name == "kaososo"){
-                    //         ksum += {{i['result']['kill']}};
-                    //         dsum += {{i['result']['death']}};
-                    //         asum += {{i['result']['assist']}};
-                    //     }
-                    //     game_count+=1;
-                        
-                    // }
+                    
+                        <div class="player">
+                            <div class="ours">
+                                <table>
+                                    <tr>
+                                        <th colspan="4"><h2 style="color:#E1F56F;">My Team</h2></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Player</th>
+                                        <th>weapon</th>
+                                        <th>paint</th>
+                                        <th>result</th>    
+                                    </tr>
+                                    {% for i in result['myTeam']['players'] %}
+                                        <tr>
+                                            <td><p>{{i['name']}} </p></td>
+                                            
+                                            <td>
+                                                <p><img src="{{i['weapon']['image']['url']}}" class="weapon">
+                                                    <img src="{{i['headGear']['primaryGearPower']['image']['url']}}" class="Gear">
+                                                    <img src="{{i['clothingGear']['primaryGearPower']['image']['url']}}" class="Gear">
+                                                    <img src="{{i['shoesGear']['primaryGearPower']['image']['url']}}" class="Gear"></p>
+                                            </td>
+                                            <td>{{i['paint']}}</td>
+                                            <td>{{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p></td>
+                                        </tr>
+                            
+                                    <script>
+                                        
+                                        function sum_result(){
+                                            
+                                            var name = {{i['name']|tojson}};
+                                            if(name == "kaososo"){
+                                                    
+                                                ksum += {{i['result']['kill']}};
+                                                dsum += {{i['result']['death']}};
+                                                asum += {{i['result']['assist']}};
+                                            }
+                                            game_count+=1;
+                                            
+                                        }
 
-                    //sum_result();
-                </script>
-            
-            {% endfor %}
-            
-            </div>
-            
-            <div id="rule">
-            <h3>Mode:{{result['vsMode']['mode']}} Rule:{{result['vsRule']['name']}} Stage:{{result['vsStage']['name']}}</h3>
-            
-            <h3><img src="{{result['vsStage']['image']['url']}}"></h3>
-            </div>
-            
-            <hr size="3">
+                                        sum_result();
+                                    </script>
+                                    </tr>
+                                    {% endfor %}
+                                
+                                </table>
+                            </div>
+                            <div class="oponents">
+                                <table>
+                                    <tr>
+                                        <th colspan="4"><h2 style="color:#E1F56F;">Oponent Team</h2></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Player</th>
+                                        <th>weapon</th>
+                                        <th>paint</th>
+                                        <th>result</th>      
+                                    </tr>
+                            
+                                    {% for i in result['otherTeams'][0]['players'] %}
+                                        <tr>
+                                        <td><p>{{i['name']}} </p></td>
+                                        
+                                        <td>
+                                            <p><img src="{{i['weapon']['image']['url']}}" class="weapon">
+                                                    <img src="{{i['headGear']['primaryGearPower']['image']['url']}}" class="Gear">
+                                                    <img src="{{i['clothingGear']['primaryGearPower']['image']['url']}}" class="Gear">
+                                                    <img src="{{i['shoesGear']['primaryGearPower']['image']['url']}}" class="Gear"></p>
+                                        </td>
+                                        <td>{{i['paint']}}</td>
+                                        <td>{{i['result']['kill']}}キル {{i['result']['death']}}デス {{i['result']['assist']}}アシスト</p></td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        </div>
+                    
+                        <div id="rule">
+                            
+                        <h2>Mode:{{result['vsMode']['mode']}} Rule:{{result['vsRule']['name']}} Stage:{{result['vsStage']['name']}}</h2>
+                        
+                        <h3><img src="{{result['vsStage']['image']['url']}}"></h3>
+                        </div>
+                    </div>
+                
+                </details>
             </div>
         {% endfor %}
 
