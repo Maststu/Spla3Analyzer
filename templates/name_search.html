@@ -113,8 +113,8 @@
             <form action="{{url_for('name_search')}}" method="POST">
                 <div class="select">
                     <input type="text" name="username" value="{{ username }}" padding="20px">
-                    <input type="submit"/>
-                    <input type="submit" name = "reset" value="reset"/>
+                    <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <button type="submit" name = "reset" value="reset"><i class="fa-solid fa-trash"></i></button>
                 </div>
             
             </form>

@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>スプラトゥーン3 戦績管理アプリ(仮)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='login.css')}}">
     <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -35,16 +35,24 @@
     </dl>
 </div>
 <div id="container">
-<div class="login-box">
-<form action="{{url_for('login')}}" method="post">
-    <a href="{{url}}" target="_blank">情報を取得</a>
-    <h1>ニンテンドーアカウントでログイン</h1>
-    <input type="password" name="password" placeholder="URL"/>
-    <input type="submit" name="login-button" value="ログイン"/>
-</form>
+    <div class="login-box">
+        <form action="{{url_for('login')}}" method="post">
+            
+            <h1>ニンテンドーアカウントでログイン</h1>
+            <input type="password" name="password" placeholder="URL"/>
+            <input type="submit" name="login-button" value="ログイン"/>
+        </form>
+        <a href="{{url}}" target="_blank"><h2>Nintendoログイン画面へ</h2></a>
+        <div id="explain">
+            <ol>
+                <li><p>上のURLに飛びNintendoアカウントにログイン(すでにログインしている場合割愛)</p></li>
+                <li><p>この人にするというボタンを左クリックし、リンクのアドレスをコピーする</p></li>
+                <li><p>コピーしたURLを上記のフォーマットに貼り付けしログインボタンを押す</p></li>
+            </ol>
+        </div>
+    </div>
 </div>
-</div>
-
+<p id = "blankbox" style="background-color: #3f4149;height:2000px"></p>
 <!-- /sidebar section -->
 
 </body>

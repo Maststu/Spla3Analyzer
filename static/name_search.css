@@ -3,8 +3,17 @@
 	padding-left: 120px;
 	background: rgb(80, 152, 79);
 }
+.select input{
+	font-size:20px;
+	width:400px;
+	height:80px;
+}
 
-
+.select button{
+	font-size:20px;
+	width:80px;
+	height:80px;
+}
 .column{
     
     padding:100px;

@@ -3,6 +3,7 @@ from pprint import pprint
 import pymongo
 import my_s3s
 from collections import Counter
+from bson.son import SON
 from flask import (Flask, current_app, g, redirect, render_template, request,
                     url_for) 
 
@@ -83,16 +84,19 @@ def name_search():
     ids = Counter()
     if request.method == 'POST':
         if request.form.get('reset'):
+
             username = request.args.get('username', '')
+            df = game_col.find({}).sort("playedTime",-1)
         else:
             username = request.form['username']
+            df = game_col.find(filter={"$or":[{"myTeam.players.name":{"$regex":username}},{"otherTeams.players.name":{"$regex":username}}]}).sort("playedTime",-1)
         
     else:
-        print("GET")
         
         username = request.args.get('username', 'noname')
+        df = game_col.find({}).sort("playedTime",-1)
     
-    df = game_col.find({}).sort("playedTime",-1)
+    
 
     return render_template("name_search.html", ids=ids, df=df, username=username)
 
@@ -106,7 +110,14 @@ def config():
 
 @app.route("/show_json",methods=["GET","POST"])
 def show_json():
-    
+    pipeline = [
+            {"$project":{"myTeam.players.name":1}},
+            {"$unwind": "$myTeam.players"},
+            {"$group": {"_id": "$myTeam.players", "count": {"$sum": 1}}},
+            {"$sort": SON([("count", -1), ("_id", -1)])}
+    ]
+    data = list(game_col.aggregate(pipeline))
+    my_name = data[0]['_id']['name']
     if game_col.find_one is None:
         if my_s3s.SESSION_TOKEN == "":
 
@@ -137,7 +148,7 @@ def show_json():
     else:
         df = game_col.find().sort("playedTime",-1)
     
-    return render_template("show_json.html",df=df)
+    return render_template("show_json.html",my_name=my_name,df=df)
 
 
 

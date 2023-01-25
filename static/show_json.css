@@ -131,8 +131,18 @@ label #cancel{
 	background: rgb(80, 152, 79);
 }
 
-.select select,input{
-    font-size:30px;
+.select select{
+    font-size:20px;
+	width:400px;
+	height:80px;
+}
+
+
+
+.select button{
+	font-size:20px;
+	width:80px;
+	height:80px;
 }
 
 /* The container must be positioned relative: */
@@ -280,7 +290,8 @@ label #cancel{
 
 
 #rule{
-	padding-left: 100px;
+	font-size:30px;
+	padding-left: 10px;
 	color: #E1F56F;
 }
 
@@ -333,8 +344,13 @@ img.stage{
     
 }
 
+.player th{
+	background-color:rgb(80, 152, 79) ;
+}
 
-
+.player #Myteam{
+	background-color: rgb({{result['myTeam']['color']['a']}},{{result['myTeam']['color']['g']}},{{result['myTeam']['color']['b']}});
+}
 
 .player table,th,td{
     border: 1px solid black;

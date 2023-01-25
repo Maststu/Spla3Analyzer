@@ -1,7 +1,3 @@
-@charset "utf-8";
-@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1p&display=swap');
-
-
 *{
 	margin: 0;
 	padding: 0;
@@ -13,7 +9,6 @@
 	text-decoration: none;
 	/*font-family: 'M PLUS 1p', sans-serif;*/
 }
-
 .sidebar {
 	position: fixed;
 	left: -250px;
@@ -171,139 +166,10 @@ label #cancel{
 	text-align: center;
 }
 
-/*show_json*/
-#show_json {
-	background-color: #3f4149;
-	color:rgb(231, 231, 231);
+a h2{
+    font-size:20px;
 }
 
-#show_json h1{
-	color: #E1F56F;
-	text-align: center;
-	font-size: 32px;
+#explain p{
+	font-size:20px;
 }
-
-
-#result_sum{
-	background-color: rgb(44, 0, 126);
-	text-align: center;
-	padding-right: 120px;
-}
-
-#result_sum h3{
-	font-size: 18px;
-}
-
-#show_json p{
-	padding-left: 100px;
-}
-
-#win{
-	color: white;
-	background-color: red;
-	font-size: 20px;
-}
-
-#lose{
-	color: white;
-	background-color: blue;
-	font-size: 20px;
-}
-
-
-
-img.weapon{
-	width: 32px;
-	height: 30px;
-}
-
-/*myteam*/
-.myteam{
-	box-sizing: border-box;
-	width: 800px;
-}
-
-.myteam h3{
-	padding-left: 100px;
-	font-size: 24px;
-	color: #E1F56F;
-}
-
-.myteam h4{
-	color: rgb(144, 144, 144);
-	padding-left: 130px;
-	font-size: 16px;
-}
-
-.myteam p{
-	font-size: 16px;
-	text-decoration: underline;
-}
-
-.myteam p span{
-	display: inline-block;
-	width: 250px;
-	padding-left: 30px;
-}
-
-#rule{
-	padding-left: 100px;
-	color: #E1F56F;
-}
-
-/*end show_json*/
-/*show_winrate*/
-#winrate{
-	background: #3f4149;
-	padding-left: 100px;
-}
-
-#winrate h2{
-	font-size: 24px;
-	padding-left: 120px;
-	color: #E1F56F;
-}
-
-#winrate h3{
-	font-size: 20px;
-	color: #E1F56F;
-}
-
-#winrate h4{
-	padding-left: 30px;
-	color: rgb(218, 218, 218);
-}
-
-#winrate p{
-	padding-left: 50px;
-	color: rgb(218, 206, 190);
-}
-
-
-img.stage{
-	display: block;
-	position: relative;
-	left: 20;
-}
-
-.select{
-	padding: 5px;
-	padding-left: 120px;
-	background: rgb(80, 152, 79);
-}
-
-
-/*footer*/
-footer {
-	clear: both;
-	text-align: center;	/*文字をセンタリング*/
-	padding: 30px 0px 10px;	/*上、左右、下へのボックス内の余白*/
-}
-
-
-#logout {
-	background-color: #3f4149;
-	color:rgb(231, 231, 231);
-	text-align: center;
-}
-

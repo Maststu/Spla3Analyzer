@@ -5,6 +5,7 @@
         <title>ITS_Json_Information</title>
         <!--<link rel="stylesheet" href="{{url_for('static',filename='style.css')}}"> !-->
         <link rel="stylesheet" href="{{url_for('static',filename='show_json.css')}}">
+        <link href="https://use.fontawesome.com/releases/v5.15.1/css/all.css" rel="stylesheet">
         <script src="https://kit.fontawesome.com/a69c380e0a.js" crossorigin="anonymous"></script>
     </head>
 <body>
@@ -98,7 +99,7 @@
 
         
 
-        <h1 style="text-align:center;">kaososo's Buttle Result</h1>
+        <h1 style="text-align:center;">{{my_name}}'s Buttle Result</h1>
        
         <p id="result_sum">Hello</p>
        <!--surround the select box with a "custom-select" DIV element. Remember to set the width:-->
@@ -106,7 +107,7 @@
         <div class="update">
         <form action="{{url_for('show_json')}}" method="POST">
             <div class="select">
-            <input type="submit" name = "update" value="更新"></button>
+            <button type="submit" name = "update"><i class="fa-solid fa-arrow-rotate-right"></i></button>
             </div>
             
         </form>
@@ -124,7 +125,7 @@
                     <option value="FEST">フェスマッチ</option>
                 </select>
                 
-                <input type="submit" value="filter">
+                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
                 </div>
             </form>
         </div>
@@ -188,7 +189,8 @@
                         <div class="player">
                             <div class="ours">
                                 <table>
-                                    <tr>
+                                    
+                                    <tr id="Myteam">
                                         <th colspan="4"><h2 style="color:#E1F56F;">My Team</h2></td>
                                     </tr>
                                     <tr>
@@ -216,7 +218,7 @@
                                         function sum_result(){
                                             
                                             var name = {{i['name']|tojson}};
-                                            if(name == "kaososo"){
+                                            if(name == {{my_name|tojson}}){
                                                     
                                                 ksum += {{i['result']['kill']}};
                                                 dsum += {{i['result']['death']}};
@@ -235,7 +237,7 @@
                             </div>
                             <div class="oponents">
                                 <table>
-                                    <tr>
+                                    <tr id="Otherteam">
                                         <th colspan="4"><h2 style="color:#E1F56F;">Oponent Team</h2></td>
                                     </tr>
                                     <tr>
@@ -267,7 +269,7 @@
                             
                         <h2>Mode:{{result['vsMode']['mode']}} Rule:{{result['vsRule']['name']}} Stage:{{result['vsStage']['name']}}</h2>
                         
-                        <h3><img src="{{result['vsStage']['image']['url']}}"></h3>
+                        
                         </div>
                     </div>
                 
