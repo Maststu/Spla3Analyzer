@@ -108,8 +108,10 @@
         </script>
 
         <div id="show_json">
+            <div id="header1">
             <h1>Name Search</h1>
             <h1>名前を入力してください</h1>
+            </div>
             <form action="{{url_for('name_search')}}" method="POST">
                 <div class="select">
                     <input type="text" name="username" value="{{ username }}" padding="20px">
@@ -414,7 +416,7 @@
             <script>
                 var elm2 = document.getElementById("result");
                 
-                elm2.innerHTML += "<h1>検索してヒットしたプレイヤーとのデータ</h1>";
+                elm2.innerHTML += "<h1 id='header1'>検索してヒットしたプレイヤーとのデータ</h1>";
                 var data = "<div class='column'>";
                 
                 for(var key in index){

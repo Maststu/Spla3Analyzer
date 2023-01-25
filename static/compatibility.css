@@ -131,7 +131,7 @@ label #cancel{
 }
 
 #result{
-    background: #2B2E37;
+    background: #3f4149;
     font-size: 24px;
     padding-left: 100px;
 	color: rgb(231, 231, 231);
@@ -150,7 +150,7 @@ label #cancel{
 }
 
 #main{
-    background: #2B2E37;
+    background: #3f4149;
     font-size: 24px;
 	color: rgb(231, 231, 231);
 	padding: 5px;
@@ -179,4 +179,12 @@ td {
     display: inline-block;
     padding: 10px;
 	margin: 10px;
+	background-color:#3f4149 ;
+}
+
+#blankbox{
+	margin       : auto;
+	width        : 100%;
+	height       : 1000px;
+	background   : #3f4149;		
 }
